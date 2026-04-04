@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+
+<html class="scroll-smooth" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Velocity Prime | Swift Ride LLP</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&amp;family=DM+Sans:wght@400;500;700&amp;family=Inter:wght@400;500;600&amp;family=Epilogue:wght@700&amp;family=Manrope:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-fixed-dim": "#ffb691",
+              "surface": "#f9f9ff",
+              "tertiary-container": "#ac4900",
+              "surface-container-low": "#f3f3fa",
+              "error-container": "#ffdad6",
+              "surface-container-highest": "#e2e2e9",
+              "on-secondary": "#ffffff",
+              "primary-fixed-dim": "#b8c3ff",
+              "secondary-fixed": "#dee0ff",
+              "on-secondary-container": "#001b86",
+              "inverse-primary": "#b8c3ff",
+              "on-primary-fixed": "#001355",
+              "on-background": "#1a1b21",
+              "primary-fixed": "#dde1ff",
+              "surface-tint": "#3052d2",
+              "secondary": "#3f53c4",
+              "on-primary-container": "#e2e5ff",
+              "on-tertiary-container": "#ffe0d2",
+              "on-surface": "#1a1b21",
+              "surface-container": "#ededf5",
+              "surface-dim": "#d9d9e1",
+              "background": "#f9f9ff",
+              "tertiary-fixed": "#ffdbcb",
+              "inverse-on-surface": "#f0f0f8",
+              "outline": "#747686",
+              "on-secondary-fixed": "#000f5c",
+              "surface-container-high": "#e8e7ef",
+              "secondary-container": "#778afe",
+              "surface-container-lowest": "#ffffff",
+              "tertiary": "#863700",
+              "on-tertiary": "#ffffff",
+              "surface-variant": "#e2e2e9",
+              "on-primary-fixed-variant": "#0736ba",
+              "inverse-surface": "#2e3036",
+              "secondary-fixed-dim": "#bac3ff",
+              "on-tertiary-fixed-variant": "#793100",
+              "on-tertiary-fixed": "#341100",
+              "surface-bright": "#f9f9ff",
+              "on-primary": "#ffffff",
+              "on-error-container": "#93000a",
+              "primary": "#1a40c2",
+              "error": "#ba1a1a",
+              "on-secondary-fixed-variant": "#2339ab",
+              "primary-container": "#3b5bdb",
+              "outline-variant": "#c4c5d6",
+              "on-surface-variant": "#444654",
+              "on-error": "#ffffff"
+            },
+            fontFamily: {
+              "headline": ["Epilogue", "sans-serif"],
+              "body": ["Manrope", "sans-serif"],
+              "label": ["Inter", "sans-serif"],
+              "syne": ["Syne", "sans-serif"],
+              "dm-sans": ["DM Sans", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .mesh-gradient {
+            background-color: #1a40c2;
+            background-image: 
+                radial-gradient(at 0% 0%, #3b5bdb 0, transparent 50%), 
+                radial-gradient(at 50% 0%, #3052d2 0, transparent 50%), 
+                radial-gradient(at 100% 0%, #1a1b21 0, transparent 50%);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 w-full z-50 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-sm h-16 flex justify-between items-center px-6">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-bold tracking-tighter text-blue-800 dark:text-blue-300 font-syne">Velocity Prime</span>
+<nav class="hidden md:flex items-center space-y-0 space-x-8 font-syne font-bold tracking-tight">
+<a class="text-blue-700 dark:text-blue-400 border-b-2 border-blue-700 dark:border-blue-400 pb-1" href="ui.html">Fleet</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-blue-600 transition-colors" href="admin.html">Dispatch</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-blue-600 transition-colors" href="book.html">Schedules</a>
+<a class="text-slate-600 dark:text-slate-400 hover:text-blue-600 transition-colors" href="#">Analytics</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-600 hover:bg-slate-100 transition-colors rounded-full">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-slate-600 hover:bg-slate-100 transition-colors rounded-full">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<img alt="User profile avatar" class="w-8 h-8 rounded-full object-cover border border-outline-variant" data-alt="Close-up studio portrait of a professional male executive in his 30s with short hair and a friendly expression" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDDU_ZA9jlAmQd7UPWaawLrddzHsI2FK6jZ67AmbRmMXnCXuQe9zqwFx-7lrHdN3pqYU91HVlJcJMP-aukmQrOC6bt1ovTmmMPFxZp18mIX9ZXuA2lFL7oXy3X98yjwHfF_Rt829k-khnwBsrKi11rmn7TupceQV-ln84KPtkXl-OcQFpuGD7TSXrPMqpgmVoLtQB3VtOR-Ij26-tm9-xjaqiP1RiB8RNyfXAh_4FNVHk_GSF9EW6Gwt50qGI-m-g_xoNTuJTaMLkk"/>
+</div>
+</header>
+<!-- Hero Section -->
+<section class="relative min-h-screen pt-16 flex items-center overflow-hidden mesh-gradient">
+<div class="max-w-7xl mx-auto px-8 w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center z-10">
+<div class="space-y-8">
+<h1 class="font-syne font-extrabold text-6xl md:text-8xl text-white leading-[0.9] tracking-tighter">
+                    Swift Ride.<br/>Premium Transport,<br/><span class="text-primary-fixed">Simplified.</span>
+</h1>
+<p class="text-xl text-white/80 max-w-lg font-dm-sans leading-relaxed">
+                    The Motion Architect of your daily commute. Experience executive-grade logistics with the precision of a first-class lounge.
+                </p>
+<div class="flex flex-wrap gap-4 pt-4">
+<a href="book.html" class="inline-block px-8 py-4 bg-gradient-to-br from-primary to-primary-container text-white rounded-xl font-bold font-dm-sans hover:shadow-xl hover:shadow-primary/20 transition-all active:scale-95 text-center">
+                        Book a Ride
+                    </a>
+<button class="px-8 py-4 border border-white/20 text-white rounded-xl font-bold font-dm-sans hover:bg-white/10 transition-all glass-panel">
+                        Track My Ride
+                    </button>
+</div>
+</div>
+<!-- Floating Booking Card -->
+<div class="relative hidden lg:block">
+<div class="absolute -top-20 -right-20 w-96 h-96 bg-primary-container/20 rounded-full blur-3xl"></div>
+<div class="relative glass-panel rounded-full p-8 border border-white/10 shadow-2xl">
+<div class="space-y-6">
+<div class="flex justify-between items-center">
+<span class="text-white/60 font-label text-xs uppercase tracking-widest">Active Dispatch</span>
+<span class="px-3 py-1 bg-secondary-container/30 text-secondary-fixed text-[10px] font-bold rounded-full uppercase">In Transit</span>
+</div>
+<div class="space-y-4">
+<div class="flex items-start gap-4">
+<div class="mt-1 flex flex-col items-center gap-1">
+<span class="w-3 h-3 rounded-full bg-primary-fixed"></span>
+<div class="w-0.5 h-12 bg-white/20"></div>
+<span class="material-symbols-outlined text-white text-sm">location_on</span>
+</div>
+<div class="flex-1 space-y-4">
+<div>
+<p class="text-white/40 text-[10px] uppercase font-bold tracking-tighter">Pickup</p>
+<p class="text-white font-dm-sans text-lg">Lexington Avenue, NY</p>
+</div>
+<div>
+<p class="text-white/40 text-[10px] uppercase font-bold tracking-tighter">Destination</p>
+<p class="text-white font-dm-sans text-lg">JFK International Airport</p>
+</div>
+</div>
+</div>
+</div>
+<div class="pt-6 border-t border-white/10 flex justify-between items-center">
+<div class="flex items-center gap-3">
+<img alt="Driver avatar" class="w-10 h-10 rounded-full object-cover border border-white/20" data-alt="Professional female driver portrait with confident smile, soft natural lighting and urban blurred background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDRZblgERdl7MTS-eehDXYz2gDnGgxWSTuB6zfzAGwC8o73soHGfHDS0wurjT36BdJqZqLHdfiB_Z2omb-GOKaV_0LKvWlQSV5SiSjzsUGyUPZtz-_DgotsoNoat9zf8Rply3ryrnbVs3Na0vFowSmvqwg6Zb9PEFb6O-M94zBZdbpX5R8OKQNRmfBmRgLxN6kJ5asxLG-bCqmIchJfvIksktcNS9B6nyCQd07KvqrNm4cubRrdqfh1SXHgJxoc-z25hqfOdD3O4B8"/>
+<div>
+<p class="text-white font-bold text-sm">Sarah Jenkins</p>
+<p class="text-white/60 text-xs">Tesla Model S • 4.98★</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-primary-fixed">call</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Decorative Texture -->
+<div class="absolute inset-0 opacity-10 pointer-events-none mix-blend-overlay">
+<div class="w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+</div>
+</section>
+<!-- Stats Bar -->
+<section class="relative z-20 -mt-10 max-w-5xl mx-auto px-6">
+<div class="bg-surface-container-lowest rounded-full shadow-2xl p-6 md:p-8 flex flex-col md:flex-row justify-around items-center gap-8 md:gap-4 border border-outline-variant/10">
+<div class="text-center md:border-r border-outline-variant/20 md:pr-12">
+<p class="text-3xl font-syne font-extrabold text-primary">10,000+</p>
+<p class="text-xs uppercase font-label font-bold text-outline tracking-widest pt-1">Rides Completed</p>
+</div>
+<div class="text-center md:border-r border-outline-variant/20 md:pr-12">
+<p class="text-3xl font-syne font-extrabold text-primary">500+</p>
+<p class="text-xs uppercase font-label font-bold text-outline tracking-widest pt-1">Expert Drivers</p>
+</div>
+<div class="text-center md:border-r border-outline-variant/20 md:pr-12">
+<p class="text-3xl font-syne font-extrabold text-primary">4.9★</p>
+<p class="text-xs uppercase font-label font-bold text-outline tracking-widest pt-1">Average Rating</p>
+</div>
+<div class="text-center">
+<p class="text-3xl font-syne font-extrabold text-primary">24/7</p>
+<p class="text-xs uppercase font-label font-bold text-outline tracking-widest pt-1">Availability</p>
+</div>
+</div>
+</section>
+<!-- How It Works -->
+<section class="py-24 max-w-7xl mx-auto px-8">
+<div class="text-center mb-16">
+<h2 class="font-syne font-extrabold text-4xl text-on-surface mb-4">How It Works</h2>
+<div class="w-20 h-1 bg-primary mx-auto rounded-full"></div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
+<!-- Connection Line (Desktop) -->
+<div class="hidden md:block absolute top-12 left-1/4 right-1/4 h-px border-t border-dashed border-outline-variant"></div>
+<div class="text-center space-y-4 group">
+<div class="w-24 h-24 bg-surface-container mx-auto rounded-full flex items-center justify-center relative z-10 group-hover:bg-primary transition-colors duration-500">
+<span class="material-symbols-outlined text-4xl text-primary group-hover:text-white transition-colors">calendar_month</span>
+</div>
+<h3 class="font-syne font-bold text-xl">Book</h3>
+<p class="text-on-surface-variant font-dm-sans max-w-[250px] mx-auto">Select your service type and schedule via our platform or app.</p>
+</div>
+<div class="text-center space-y-4 group">
+<div class="w-24 h-24 bg-surface-container mx-auto rounded-full flex items-center justify-center relative z-10 group-hover:bg-primary transition-colors duration-500">
+<span class="material-symbols-outlined text-4xl text-primary group-hover:text-white transition-colors">assignment_ind</span>
+</div>
+<h3 class="font-syne font-bold text-xl">Driver Assigned</h3>
+<p class="text-on-surface-variant font-dm-sans max-w-[250px] mx-auto">Get matched with a professional, vetted driver in real-time.</p>
+</div>
+<div class="text-center space-y-4 group">
+<div class="w-24 h-24 bg-surface-container mx-auto rounded-full flex items-center justify-center relative z-10 group-hover:bg-primary transition-colors duration-500">
+<span class="material-symbols-outlined text-4xl text-primary group-hover:text-white transition-colors">location_away</span>
+</div>
+<h3 class="font-syne font-bold text-xl">Arrive</h3>
+<p class="text-on-surface-variant font-dm-sans max-w-[250px] mx-auto">Enjoy your journey and arrive at your destination refreshed.</p>
+</div>
+</div>
+</section>
+<!-- Ride Types -->
+<section class="py-24 bg-surface-container-low">
+<div class="max-w-7xl mx-auto px-8">
+<div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6">
+<div class="space-y-2">
+<p class="text-primary font-bold font-label text-sm uppercase tracking-widest">Our Fleet</p>
+<h2 class="font-syne font-extrabold text-5xl">Engineered for Comfort.</h2>
+</div>
+<p class="text-on-surface-variant max-w-md font-dm-sans">
+                    Choose from our meticulously maintained fleet of high-performance vehicles, tailored for every occasion.
+                </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<!-- Standard -->
+<div class="bg-surface-container-lowest p-8 rounded-full border border-outline-variant/10 hover:shadow-2xl transition-all group">
+<div class="h-40 mb-6 flex items-center justify-center overflow-hidden rounded-xl bg-slate-100">
+<img alt="Standard sedan" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="Modern sleek white sedan parked in a clean minimalist architectural environment with soft daylight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJZZu0TwFPf9s4Wp_8V0vhwWiCVhDQAVRxOthziYKF10ASEZy2Swb0fN-oWfvSrhWAgrJbrUbVMpqqsxa9r--ZDfnTnEhdQARanb4baC-ZpG-uz220_7JFnY21CXzxm1Ti_A6STNst4HRAzKjivQIPM1UZBmxOFjOGFDC6zcj7K2xwZU4PnuhhkoI0KNk-c38Ry3nsmJ01pv_sTWLNz3pFVlP1Aull8pFspHDfA_WGAU4twvVC6szXQjdU2aL2BolE1KY8m9Ybh9U"/>
+</div>
+<h3 class="font-syne font-bold text-2xl mb-2">Standard</h3>
+<p class="text-on-surface-variant text-sm mb-6">Efficient, modern sedans for everyday luxury.</p>
+<div class="flex justify-between items-center">
+<span class="text-primary font-bold text-lg">$2.50/mi</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">arrow_forward</span>
+</div>
+</div>
+<!-- Premium -->
+<div class="bg-surface-container-lowest p-8 rounded-full border border-outline-variant/10 hover:shadow-2xl transition-all group">
+<div class="h-40 mb-6 flex items-center justify-center overflow-hidden rounded-xl bg-slate-100">
+<img alt="Executive sedan" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="Black luxury executive sedan driving through a high-end city district at dusk with street lights reflecting on the car's body" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmGAIuQdkbElXJulmCTVFNQfIg_--EVfquLL_tpkC7NkJcvHywKiUHfVumJ_s0cFyGt7x6IiIr4BtQEJkp_LlAj0MCPJgHuwdfzbea6ReoAXPltU5PMAWM7lX87XIOjUoWmk0x01dErNYi4woQo1R-8Y0dtQC25KorZenC0Ke4xu_oJ0cIqTLTRla2lP3aDisld7TyanWALfjX0ZkciEpWJZPv8peuZHSQ_r-8UJzK6I24uZZ6MhAWbZNzJrjA7dtDia75uCOUUW4"/>
+</div>
+<h3 class="font-syne font-bold text-2xl mb-2">Premium</h3>
+<p class="text-on-surface-variant text-sm mb-6">High-end executive vehicles with extra amenities.</p>
+<div class="flex justify-between items-center">
+<span class="text-primary font-bold text-lg">$4.50/mi</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">arrow_forward</span>
+</div>
+</div>
+<!-- XL -->
+<div class="bg-surface-container-lowest p-8 rounded-full border border-outline-variant/10 hover:shadow-2xl transition-all group">
+<div class="h-40 mb-6 flex items-center justify-center overflow-hidden rounded-xl bg-slate-100">
+<img alt="Luxury SUV" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="Spacious black luxury SUV parked near a modern glass building under a clear blue sky" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCN0tAk9n7JynW7wvlQ6BezXN8liR7UK9VYhacLHbQHROf5BLSUdJdM82vDoi3T98HmoQswPOHt389rxofj0VTGWqnsazb8QAAPG1Kgu-H8B2c0_BrAidvxVKXO_ksJXX9A0_vRJlFeuZbeLblg3asf_5TAifylXk5BmVExGsLmKHEb_QdHke7AZluXmGdq6Is1VPRzku2V2hFNQDsSFXfgcT0nOsnj87GZXLN9Hz7-mf8rpQptRPJFahMKKyc7v2P4p4GInFb2Y04"/>
+</div>
+<h3 class="font-syne font-bold text-2xl mb-2">XL Suite</h3>
+<p class="text-on-surface-variant text-sm mb-6">Spacious SUVs for groups up to 6 passengers.</p>
+<div class="flex justify-between items-center">
+<span class="text-primary font-bold text-lg">$6.00/mi</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">arrow_forward</span>
+</div>
+</div>
+<!-- Medical -->
+<div class="bg-surface-container-lowest p-8 rounded-full border border-outline-variant/10 hover:shadow-2xl transition-all group">
+<div class="h-40 mb-6 flex items-center justify-center overflow-hidden rounded-xl bg-slate-100">
+<img alt="Medical transport vehicle" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" data-alt="Clean specialized medical transport van with accessibility ramp in a bright hospital entrance setting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBr49nCvcvcv15s4PWn6h3g9oYSJxWkBKf-RA7uP61SSz28_Gee5EJwAIlPotRrj9-FwD14ZgMUVUFgVX6pKJEO8Wj-zmO8hPVS3Og38F4bm-gMnDyCaC4hWSNQvq8iRlumXgbUEOYUdJhMjAK4ISd4m1v4rlgbcWGYVn9aN4LvTM_SOlT-nkDRIjqNCaccE5Ttik7dbHQXTAQHQpkcQcV7T6bNFbAw23VHYSIR1o77qkA5PuPMes7PP2QFNUsDq3ieDXo88VhJIu8"/>
+</div>
+<h3 class="font-syne font-bold text-2xl mb-2">Medical</h3>
+<p class="text-on-surface-variant text-sm mb-6">HIPAA-compliant non-emergency transport.</p>
+<div class="flex justify-between items-center">
+<span class="text-primary font-bold text-lg">$3.50/mi</span>
+<span class="material-symbols-outlined text-outline group-hover:text-primary transition-colors">arrow_forward</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Trust Section -->
+<section class="py-24 max-w-7xl mx-auto px-8">
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+<div class="space-y-12">
+<div class="space-y-4">
+<h2 class="font-syne font-extrabold text-5xl leading-tight">Built on the Foundations of <span class="text-primary">Trust.</span></h2>
+<p class="text-on-surface-variant text-lg font-dm-sans">We prioritize security and compliance above all else. Our operations are designed to exceed industry standards.</p>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+<div class="space-y-3">
+<div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">verified_user</span>
+</div>
+<h4 class="font-bold text-lg font-syne">Licensed &amp; Insured</h4>
+<p class="text-sm text-on-surface-variant">Full commercial coverage and state-certified operational licenses.</p>
+</div>
+<div class="space-y-3">
+<div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">health_and_safety</span>
+</div>
+<h4 class="font-bold text-lg font-syne">HIPAA-Aware</h4>
+<p class="text-sm text-on-surface-variant">Confidential handling for medical transport and sensitive arrivals.</p>
+</div>
+<div class="space-y-3">
+<div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">radar</span>
+</div>
+<h4 class="font-bold text-lg font-syne">Real-Time Tracking</h4>
+<p class="text-sm text-on-surface-variant">Proprietary telemetry tracking for peace of mind and precision timing.</p>
+</div>
+<div class="space-y-3">
+<div class="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">security</span>
+</div>
+<h4 class="font-bold text-lg font-syne">Secure Payments</h4>
+<p class="text-sm text-on-surface-variant">Enterprise-grade encryption for all corporate and personal transactions.</p>
+</div>
+</div>
+</div>
+<div class="relative">
+<div class="aspect-square rounded-full overflow-hidden border-8 border-surface-container-low shadow-3xl">
+<img alt="Interior car detail" class="w-full h-full object-cover" data-alt="Close-up of a high-end car's steering wheel and digital dashboard showing a navigation map in a luxury interior at night" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAwoLb4KqkYoze_RsefF4c1YlyuJkZNDYuAhsYTfmq4LeBKRfpdwuUTkqJfrRYX7Vu1qOgmKRht3rgWrQ8tPvks5dyODeWtjFp8JPFHhOE-fDznncyTK-_E802Bx0cQ9Ja47-QkrPNPvUtjbO-inTfX_fnNVZciYyDbj985cn-0CmyvEELdRG9bGCXMJLjOV8-XPbblhkbZ4PP674nnO7kj2vmnJnLXu4FRxq1FfzucGrQQZfGkqXGfVjbzzpeBlhPBm835xhgBnow"/>
+</div>
+<div class="absolute -bottom-10 -left-10 bg-white p-6 rounded-full shadow-2xl border border-outline-variant/10 max-w-xs">
+<div class="flex gap-4 items-center">
+<div class="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white">
+<span class="material-symbols-outlined">shield_with_heart</span>
+</div>
+<div>
+<p class="font-bold text-sm">SafeGuard™ Technology</p>
+<p class="text-xs text-on-surface-variant">Active 24/7 monitoring</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer -->
+<footer class="bg-slate-50 dark:bg-slate-950 w-full py-12 border-t border-slate-200 dark:border-slate-800">
+<div class="max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-start gap-12">
+<div class="space-y-6 max-w-xs">
+<span class="text-2xl font-bold font-syne text-slate-900 dark:text-slate-100">Velocity Prime</span>
+<p class="text-xs font-dm-sans text-slate-500 leading-relaxed">
+                    Elevating the standard of motion. Premium transportation solutions for the modern enterprise and the discerning traveler.
+                </p>
+<div class="flex gap-4">
+<a class="text-slate-400 hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined">public</span></a>
+<a class="text-slate-400 hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined">alternate_email</span></a>
+<a class="text-slate-400 hover:text-primary transition-colors" href="#"><span class="material-symbols-outlined">share</span></a>
+</div>
+</div>
+<div class="grid grid-cols-2 md:grid-cols-3 gap-12">
+<div class="space-y-4">
+<h5 class="font-syne font-bold text-slate-900 dark:text-slate-100 text-sm">Services</h5>
+<ul class="space-y-2">
+<li><a class="text-xs text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 underline-offset-4 hover:underline" href="#">Executive Transport</a></li>
+<li><a class="text-xs text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 underline-offset-4 hover:underline" href="#">Airport Transfers</a></li>
+<li><a class="text-xs text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 underline-offset-4 hover:underline" href="#">Medical Courier</a></li>
+<li><a class="text-xs text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 underline-offset-4 hover:underline" href="#">Fleet Leasing</a></li>
+</ul>
+</div>
+<div class="space-y-4">
+<h5 class="font-syne font-bold text-slate-900 dark:text-slate-100 text-sm">Company</h5>
+<ul class="space-y-2">
+<li><a class="text-xs text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 underline-offset-4 hover:underline" href="#">Our Story</a></li>
+<li><a class="text-xs text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 underline-offset-4 hover:underline" href="#">Careers</a></li>
+<li><a class="text-xs text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 underline-offset-4 hover:underline" href="#">Driver Network</a></li>
+<li><a class="text-xs text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 underline-offset-4 hover:underline" href="#">Partners</a></li>
+</ul>
+</div>
+<div class="space-y-4">
+<h5 class="font-syne font-bold text-slate-900 dark:text-slate-100 text-sm">Legal</h5>
+<ul class="space-y-2">
+<li><a class="text-xs text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 underline-offset-4 hover:underline" href="#">Privacy Policy</a></li>
+<li><a class="text-xs text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 underline-offset-4 hover:underline" href="#">Terms of Service</a></li>
+<li><a class="text-xs text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 underline-offset-4 hover:underline" href="#">Carrier Agreement</a></li>
+<li><a class="text-xs text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 underline-offset-4 hover:underline" href="#">Help Center</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="max-w-7xl mx-auto px-8 pt-12 mt-12 border-t border-slate-200 dark:border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
+<p class="text-[10px] text-slate-400 uppercase tracking-widest font-label">© 2024 Velocity Prime. The Motion Architect.</p>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined text-slate-300 text-lg">payments</span>
+<span class="material-symbols-outlined text-slate-300 text-lg">contactless</span>
+<span class="material-symbols-outlined text-slate-300 text-lg">credit_card</span>
+</div>
+</div>
+</footer>
+<!-- Mobile Navigation Shell -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-end px-4 pb-6 h-20 bg-white/90 dark:bg-slate-950/90 backdrop-blur-2xl rounded-t-3xl border-t border-slate-200/50 dark:border-slate-800/50 shadow-[0_-10px_40px_rgba(0,0,0,0.04)]">
+<a class="flex flex-col items-center justify-center bg-blue-600 text-white rounded-2xl p-3 mb-1 transform -translate-y-2 shadow-lg shadow-blue-500/40 transition-all active:scale-90" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-dm-sans text-[10px] uppercase tracking-widest mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 p-2 active:scale-90 transition-all" href="#">
+<span class="material-symbols-outlined">list_alt</span>
+<span class="font-dm-sans text-[10px] uppercase tracking-widest mt-1">Jobs</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 p-2 active:scale-90 transition-all" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="font-dm-sans text-[10px] uppercase tracking-widest mt-1">Earnings</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 p-2 active:scale-90 transition-all" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-dm-sans text-[10px] uppercase tracking-widest mt-1">Profile</span>
+</a>
+</nav>
+</body></html>

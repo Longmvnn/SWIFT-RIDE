@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Swift Ride LLP — Book & Track</title>
+<link rel="icon" href="favicon.png"/>
+<script src="https://js.stripe.com/v3/"></script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.9.0/mapbox-gl.css" rel="stylesheet"/>
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.9.0/mapbox-gl.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>tailwind.config={theme:{extend:{fontFamily:{syne:['Syne','sans-serif'],dm:['DM Sans','sans-serif'],inter:['Inter','sans-serif']},colors:{primary:'#1a40c2','primaryd':'#0f2a8a'}}}}</script>
+<style>
+.material-symbols-outlined{font-variation-settings:'FILL' 0,'wght' 400,'GRAD' 0,'opsz' 24;vertical-align:middle}
+.fill-icon{font-variation-settings:'FILL' 1,'wght' 400,'GRAD' 0,'opsz' 24}
+.tab-btn.active{background:#1a40c2;color:white}
+.step-pane{display:none}.step-pane.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.step-pane.active{animation:fadeUp .25s ease}
+@keyframes spin2{to{transform:rotate(360deg)}}.spin{animation:spin2 .8s linear infinite;display:inline-block}
+.ride-card.sel{border-color:#1a40c2;background:#eff3ff}
+.pay-card.sel{border-color:#1a40c2;background:#eff3ff}
+.ac-list{position:absolute;top:100%;left:0;right:0;background:white;border:1px solid #e2e8f0;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:200;max-height:220px;overflow-y:auto;margin-top:4px}
+.ac-item{padding:10px 14px;cursor:pointer;font-size:.85rem;border-bottom:1px solid #f8fafc;display:flex;align-items:center;gap:8px}
+.ac-item:last-child{border-bottom:none}
+.ac-item:hover{background:#f1f5f9}
+#map-book{height:100%;min-height:360px}
+.mapboxgl-ctrl-attrib{font-size:9px}
+#stripe-card-element{padding:14px 16px;background:#f8fafc;border-radius:12px;border:2px solid transparent;transition:border-color .15s}
+#stripe-card-element.StripeElement--focus{border-color:#1a40c2;background:white}
+#stripe-card-element.StripeElement--invalid{border-color:#ef4444}
+</style>
+</head>
+<body class="bg-slate-50 font-dm text-slate-800 antialiased">
+
+<header class="fixed top-0 w-full z-50 bg-white/95 backdrop-blur-xl shadow-sm h-20 flex items-center px-6 justify-between">
+  <a href="home.html" class="flex items-center">
+    <img src="logo.png" alt="Swift Ride logo" class="h-14 w-auto max-w-[260px] object-contain"/>
+  </a>
+  <nav class="hidden md:flex items-center gap-8 font-inter font-medium text-sm">
+    <a href="home.html" class="text-slate-600 hover:text-blue-700 transition-colors">Home</a>
+    <a href="book.html" class="text-blue-700 border-b-2 border-blue-700 pb-0.5">Book / Track</a>
+    <a href="admin.html" class="text-slate-500 hover:text-blue-700 transition-colors">Admin</a>
+  </nav>
+  <button id="ham" class="md:hidden p-2 rounded-lg hover:bg-slate-100"><span class="material-symbols-outlined">menu</span></button>
+</header>
+<div id="mob-menu" class="hidden fixed top-16 left-0 w-full bg-white z-40 shadow-xl p-4 space-y-1 font-inter text-sm border-t border-slate-100">
+  <a href="home.html" class="flex items-center gap-2 py-3 px-4 rounded-xl hover:bg-slate-50 text-slate-700"><span class="material-symbols-outlined" style="font-size:18px">home</span>Home</a>
+  <a href="book.html" class="flex items-center gap-2 py-3 px-4 rounded-xl bg-blue-50 text-blue-700 font-bold"><span class="material-symbols-outlined" style="font-size:18px">directions_car</span>Book / Track</a>
+  <a href="admin.html" class="flex items-center gap-2 py-3 px-4 rounded-xl hover:bg-slate-50 text-slate-700"><span class="material-symbols-outlined" style="font-size:18px">dashboard</span>Admin</a>
+</div>
+<script>document.getElementById('ham').onclick=()=>document.getElementById('mob-menu').classList.toggle('hidden')</script>
+
+<main class="pt-16 min-h-screen">
+  <!-- TAB BAR -->
+  <div class="bg-white border-b border-slate-200 sticky top-16 z-30">
+    <div class="max-w-5xl mx-auto px-6 flex gap-1 py-2">
+      <button id="tab-book" onclick="switchTab('book')" class="tab-btn active px-6 py-2.5 rounded-xl text-sm font-bold font-inter transition-all flex items-center gap-2">
+        <span class="material-symbols-outlined" style="font-size:18px">add_circle</span> Book a Ride
+      </button>
+      <button id="tab-track" onclick="switchTab('track')" class="tab-btn px-6 py-2.5 rounded-xl text-sm font-bold font-inter text-slate-600 hover:bg-slate-100 transition-all flex items-center gap-2">
+        <span class="material-symbols-outlined" style="font-size:18px">location_on</span> Track Order
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== BOOKING PANE ===== -->
+  <div id="pane-book" class="max-w-5xl mx-auto px-6 py-10">
+    <!-- Step indicator -->
+    <div class="mb-10 max-w-xl mx-auto">
+      <div class="flex items-center justify-between relative">
+        <div class="absolute top-5 left-10 right-10 h-0.5 bg-slate-200 z-0">
+          <div id="step-line" class="h-full bg-blue-700 transition-all duration-500 w-0"></div>
+        </div>
+        <div class="relative z-10 flex flex-col items-center gap-1.5">
+          <div id="sn1" class="w-10 h-10 rounded-full bg-blue-700 text-white flex items-center justify-center font-bold text-sm shadow-lg">1</div>
+          <span class="text-xs font-inter font-bold text-blue-700">Details</span>
+        </div>
+        <div class="relative z-10 flex flex-col items-center gap-1.5">
+          <div id="sn2" class="w-10 h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-sm">2</div>
+          <span class="text-xs font-inter text-slate-400">Passenger</span>
+        </div>
+        <div class="relative z-10 flex flex-col items-center gap-1.5">
+          <div id="sn3" class="w-10 h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-sm">3</div>
+          <span class="text-xs font-inter text-slate-400">Payment</span>
+        </div>
+        <div class="relative z-10 flex flex-col items-center gap-1.5">
+          <div id="sn4" class="w-10 h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-sm">4</div>
+          <span class="text-xs font-inter text-slate-400">Done</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div id="step1" class="step-pane active grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 space-y-6">
+        <h2 class="font-syne font-extrabold text-2xl">Plan Your Journey</h2>
+        <div>
+          <label class="block text-xs font-inter uppercase tracking-widest text-slate-400 mb-2">Pickup Location</label>
+          <div class="relative">
+            <div class="flex items-center gap-3 bg-slate-50 px-4 py-3.5 rounded-xl border-2 border-transparent focus-within:border-blue-700 focus-within:bg-white transition-all">
+              <span class="material-symbols-outlined fill-icon text-blue-700" style="font-size:18px">location_on</span>
+              <input id="pickup" class="flex-1 bg-transparent border-none p-0 focus:ring-0 text-sm font-medium placeholder:text-slate-400 outline-none" placeholder="Enter pickup location" type="text" autocomplete="street-address" oninput="acSearch(this,'ac-pickup')" onkeydown="handleAcKeydown(event,this,'ac-pickup')" onblur="setTimeout(()=>hideAc('ac-pickup'),200)"/>
+            </div>
+            <div id="ac-pickup" class="ac-list" style="display:none"></div>
+          </div>
+          <p class="mt-2 text-xs text-slate-400 font-inter">Start typing to see location suggestions.</p>
+        </div>
+        <div>
+          <label class="block text-xs font-inter uppercase tracking-widest text-slate-400 mb-2">Drop-off Destination</label>
+          <div class="relative">
+            <div id="dropoff-wrap" class="flex items-center gap-3 bg-slate-50 px-4 py-3.5 rounded-xl border-2 border-transparent focus-within:border-blue-700 focus-within:bg-white transition-all">
+              <span class="material-symbols-outlined text-slate-400" style="font-size:18px">flag</span>
+              <input id="dropoff" class="flex-1 bg-transparent border-none p-0 focus:ring-0 text-sm font-medium placeholder:text-slate-400 outline-none" placeholder="Where to?" type="text" autocomplete="street-address" oninput="acSearch(this,'ac-dropoff')" onkeydown="handleAcKeydown(event,this,'ac-dropoff')" onblur="setTimeout(()=>hideAc('ac-dropoff'),200)"/>
+            </div>
+            <div id="ac-dropoff" class="ac-list" style="display:none"></div>
+          </div>
+          <p id="dropoff-err" class="hidden text-xs text-red-500 mt-1 font-inter">Please enter a destination.</p>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-inter uppercase tracking-widest text-slate-400 mb-2">Date</label>
+            <input type="date" id="ride-date" class="w-full bg-slate-50 border-2 border-transparent rounded-xl px-4 py-3.5 text-sm focus:border-blue-700 focus:bg-white outline-none transition-all"/>
+          </div>
+          <div>
+            <label class="block text-xs font-inter uppercase tracking-widest text-slate-400 mb-2">Time</label>
+            <input type="time" id="ride-time" class="w-full bg-slate-50 border-2 border-transparent rounded-xl px-4 py-3.5 text-sm focus:border-blue-700 focus:bg-white outline-none transition-all" value="09:00"/>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-inter uppercase tracking-widest text-slate-400 mb-3">Ride Type</label>
+          <div class="grid grid-cols-2 gap-3">
+            <button onclick="selectRide(this,'Standard','$24.50')" class="ride-card sel p-4 rounded-xl border-2 text-left transition-all">
+              <div class="flex justify-between items-start mb-1">
+                <span class="material-symbols-outlined text-blue-700" style="font-size:20px">directions_car</span>
+                <span class="text-xs font-bold text-blue-700">$24.50</span>
+              </div>
+              <p class="font-bold text-sm">Standard</p><p class="text-xs text-slate-400 mt-0.5">4-seater sedan</p>
+            </button>
+            <button onclick="selectRide(this,'Premium','$42.00')" class="ride-card p-4 rounded-xl border-2 border-slate-200 bg-white text-left transition-all hover:border-blue-300">
+              <div class="flex justify-between items-start mb-1">
+                <span class="material-symbols-outlined text-slate-400" style="font-size:20px">auto_awesome</span>
+                <span class="text-xs font-bold text-slate-700">$42.00</span>
+              </div>
+              <p class="font-bold text-sm">Premium</p><p class="text-xs text-slate-400 mt-0.5">Executive black car</p>
+            </button>
+            <button onclick="selectRide(this,'XL / Van','$38.90')" class="ride-card p-4 rounded-xl border-2 border-slate-200 bg-white text-left transition-all hover:border-blue-300">
+              <div class="flex justify-between items-start mb-1">
+                <span class="material-symbols-outlined text-slate-400" style="font-size:20px">group</span>
+                <span class="text-xs font-bold text-slate-700">$38.90</span>
+              </div>
+              <p class="font-bold text-sm">XL / Van</p><p class="text-xs text-slate-400 mt-0.5">Up to 6 passengers</p>
+            </button>
+            <button onclick="selectRide(this,'Medical','$30.00')" class="ride-card p-4 rounded-xl border-2 border-slate-200 bg-white text-left transition-all hover:border-blue-300">
+              <div class="flex justify-between items-start mb-1">
+                <span class="material-symbols-outlined text-slate-400" style="font-size:20px">medical_services</span>
+                <span class="text-xs font-bold text-slate-700">$30.00</span>
+              </div>
+              <p class="font-bold text-sm">Medical</p><p class="text-xs text-slate-400 mt-0.5">HIPAA-compliant</p>
+            </button>
+          </div>
+        </div>
+        <button onclick="goStep(2)" class="w-full py-4 bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-700/30 hover:bg-blue-800 transition-all text-sm flex items-center justify-center gap-2">
+          Next: Passenger Info <span class="material-symbols-outlined" style="font-size:18px">arrow_forward</span>
+        </button>
+      </div>
+      <!-- Map side panel -->
+      <div class="hidden lg:flex flex-col gap-4">
+        <div class="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center"><span class="material-symbols-outlined text-blue-700" style="font-size:18px">near_me</span></div>
+            <div><p class="text-xs text-slate-400">Distance</p><p id="map-dist" class="font-bold text-sm">—</p></div>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center"><span class="material-symbols-outlined text-blue-700" style="font-size:18px">schedule</span></div>
+            <div><p class="text-xs text-slate-400">ETA</p><p id="map-eta" class="font-bold text-sm">—</p></div>
+          </div>
+          <div class="flex items-center gap-2">
+            <div class="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center"><span class="material-symbols-outlined text-blue-700" style="font-size:18px">payments</span></div>
+            <div><p class="text-xs text-slate-400">Est. Fare</p><p id="map-fare" class="font-bold text-sm text-blue-700">$24.50</p></div>
+          </div>
+        </div>
+        <div id="route-options" class="hidden bg-white rounded-2xl p-3 border border-slate-100 shadow-sm">
+          <p class="text-[11px] font-inter uppercase tracking-[0.18em] text-slate-400 mb-2">Route Options</p>
+          <div id="route-options-list" class="flex flex-wrap gap-2"></div>
+        </div>
+        <div class="flex-1 rounded-2xl overflow-hidden relative min-h-96" style="min-height:380px">
+          <div id="map-book" style="width:100%;height:100%;border-radius:16px;min-height:380px"></div>
+          <div class="absolute bottom-3 left-3 right-3 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2.5 shadow text-center">
+            <p class="text-xs text-slate-500 font-inter" id="map-book-status">Start typing pickup and drop-off to preview the route.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div id="step2" class="step-pane max-w-lg mx-auto">
+      <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 space-y-5">
+        <div><h2 class="font-syne font-extrabold text-2xl">Passenger Info</h2><p class="text-slate-400 text-sm mt-1">Who is riding today?</p></div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-inter uppercase tracking-widest text-slate-400 mb-2">First Name</label>
+            <input id="fname" class="w-full bg-slate-50 border-2 border-transparent rounded-xl px-4 py-3.5 text-sm focus:border-blue-700 focus:bg-white outline-none transition-all" placeholder="John" type="text"/>
+          </div>
+          <div>
+            <label class="block text-xs font-inter uppercase tracking-widest text-slate-400 mb-2">Last Name</label>
+            <input id="lname" class="w-full bg-slate-50 border-2 border-transparent rounded-xl px-4 py-3.5 text-sm focus:border-blue-700 focus:bg-white outline-none transition-all" placeholder="Doe" type="text"/>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-inter uppercase tracking-widest text-slate-400 mb-2">Phone Number</label>
+          <input id="phone" class="w-full bg-slate-50 border-2 border-transparent rounded-xl px-4 py-3.5 text-sm focus:border-blue-700 focus:bg-white outline-none transition-all" placeholder="+1 (555) 000-0000" type="tel"/>
+        </div>
+        <div>
+          <label class="block text-xs font-inter uppercase tracking-widest text-slate-400 mb-2">Email (optional)</label>
+          <input id="email" class="w-full bg-slate-50 border-2 border-transparent rounded-xl px-4 py-3.5 text-sm focus:border-blue-700 focus:bg-white outline-none transition-all" placeholder="you@example.com" type="email"/>
+        </div>
+        <div>
+          <label class="block text-xs font-inter uppercase tracking-widest text-slate-400 mb-2">Special Notes</label>
+          <textarea class="w-full bg-slate-50 border-2 border-transparent rounded-xl px-4 py-3.5 text-sm focus:border-blue-700 focus:bg-white outline-none transition-all resize-none" rows="2" placeholder="Wheelchair accessible, extra luggage, etc."></textarea>
+        </div>
+        <div class="flex gap-3">
+          <button onclick="goStep(1)" class="flex-1 py-3.5 border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all text-sm">← Back</button>
+          <button onclick="goStep(3)" class="flex-1 py-3.5 bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-700/30 hover:bg-blue-800 transition-all text-sm">Payment →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div id="step3" class="step-pane max-w-lg mx-auto">
+      <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 space-y-5">
+        <div><h2 class="font-syne font-extrabold text-2xl">Payment</h2><p class="text-slate-400 text-sm mt-1">Review fare and pay securely.</p></div>
+        <div class="bg-slate-50 rounded-xl p-5 space-y-3">
+          <div class="flex justify-between text-sm"><span class="text-slate-500">Base Fare</span><span class="font-medium">$12.00</span></div>
+          <div class="flex justify-between text-sm"><span class="text-slate-500">Distance (12.4 mi)</span><span class="font-medium">$10.50</span></div>
+          <div class="flex justify-between text-sm pb-3 border-b border-slate-200"><span class="text-slate-500">Service Fee</span><span class="font-medium">$2.00</span></div>
+          <div class="flex justify-between items-center pt-1">
+            <span class="font-bold">Total</span>
+            <span id="total-fare" class="text-2xl font-syne font-extrabold text-blue-700">$24.50</span>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-inter uppercase tracking-widest text-slate-400 mb-3">Payment Method</label>
+          <div class="grid grid-cols-3 gap-3 mb-4">
+            <button onclick="selectPay(this,'card')" class="pay-card sel flex flex-col items-center p-3 rounded-xl border-2 transition-all">
+              <span class="material-symbols-outlined text-blue-700 mb-1" style="font-size:22px">credit_card</span>
+              <span class="text-xs font-bold text-blue-700">Card</span>
+            </button>
+            <button onclick="selectPay(this,'mobile')" class="pay-card flex flex-col items-center p-3 rounded-xl border-2 border-slate-200 hover:border-blue-300 transition-all">
+              <span class="material-symbols-outlined text-slate-400 mb-1" style="font-size:22px">brand_family</span>
+              <span class="text-xs font-bold text-slate-600">Apple Pay</span>
+            </button>
+            <button onclick="selectPay(this,'mobile')" class="pay-card flex flex-col items-center p-3 rounded-xl border-2 border-slate-200 hover:border-blue-300 transition-all">
+              <span class="material-symbols-outlined text-slate-400 mb-1" style="font-size:22px">wallet</span>
+              <span class="text-xs font-bold text-slate-600">G Pay</span>
+            </button>
+          </div>
+          <div id="stripe-card-element"></div>
+          <div id="stripe-card-error" class="text-xs text-red-500 mt-1.5 font-inter hidden"></div>
+        </div>
+        <!-- Coupon -->
+        <div>
+          <label class="block text-xs font-inter uppercase tracking-widest text-slate-400 mb-2">Coupon Code (optional)</label>
+          <div class="flex gap-2">
+            <input id="coupon-input" placeholder="e.g. SUMMER20" class="flex-1 bg-slate-50 border-2 border-transparent rounded-xl px-4 py-3 text-sm font-mono font-bold uppercase focus:border-blue-700 outline-none transition-all" oninput="this.value=this.value.toUpperCase()"/>
+            <button onclick="applyCoupon()" class="px-5 py-3 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition text-sm">Apply</button>
+          </div>
+          <p id="coupon-msg" class="hidden text-xs mt-1 font-inter"></p>
+        </div>
+
+        <div class="flex gap-3">
+          <button onclick="goStep(2)" class="flex-1 py-3.5 border-2 border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 transition-all text-sm">← Back</button>
+          <button id="pay-btn" onclick="confirmBooking()" class="flex-1 py-3.5 bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-700/30 hover:bg-blue-800 transition-all text-sm flex items-center justify-center gap-2">
+            <span id="pay-icon" class="material-symbols-outlined" style="font-size:18px">lock</span>
+            <span id="pay-text">Pay & Confirm</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 4 SUCCESS -->
+    <div id="step4" class="step-pane max-w-lg mx-auto">
+      <div class="bg-white rounded-2xl p-10 shadow-sm border border-slate-100 space-y-6 text-center">
+        <div class="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto">
+          <span class="material-symbols-outlined fill-icon text-green-500" style="font-size:48px">check_circle</span>
+        </div>
+        <div>
+          <h2 class="font-syne font-extrabold text-3xl">Ride Confirmed!</h2>
+          <p class="text-slate-400 mt-1 text-sm">Your Swift Ride is on the way.</p>
+        </div>
+        <div class="bg-slate-50 rounded-xl p-5 text-left space-y-3">
+          <div class="flex justify-between items-center">
+            <span class="text-xs text-slate-400 font-inter uppercase tracking-wider">Booking Code</span>
+            <span id="booking-code" class="font-syne font-extrabold text-blue-700 text-lg">SR-789-QZ</span>
+          </div>
+          <div class="flex justify-between text-sm"><span class="text-slate-500">Pickup</span><span class="font-medium" id="confirm-pickup">—</span></div>
+          <div class="flex justify-between text-sm"><span class="text-slate-500">Drop-off</span><span class="font-medium" id="confirm-dropoff">—</span></div>
+          <div class="flex justify-between text-sm"><span class="text-slate-500">Ride Type</span><span class="font-medium" id="confirm-type">Standard</span></div>
+          <div class="flex justify-between text-sm border-t border-slate-200 pt-3"><span class="font-bold">Total Charged</span><span class="font-bold text-blue-700" id="confirm-fare">$24.50</span></div>
+        </div>
+        <div id="driver-assign-card" class="bg-blue-50 rounded-xl p-4 flex items-center gap-3 text-left">
+          <div class="w-11 h-11 rounded-full bg-blue-700 flex items-center justify-center text-white font-bold text-sm shrink-0">
+            <span class="material-symbols-outlined" style="font-size:20px">person_search</span>
+          </div>
+          <div>
+            <p class="font-bold text-sm">Assigning your driver...</p>
+            <p class="text-xs text-slate-400">You'll be notified once a driver is matched</p>
+          </div>
+        </div>
+        <div class="flex gap-3">
+          <button onclick="switchTab('track');autoTrack()" class="flex-1 py-3.5 bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-700/30 hover:bg-blue-800 transition-all text-sm flex items-center justify-center gap-1">
+            <span class="material-symbols-outlined" style="font-size:18px">location_on</span> Track Ride
+          </button>
+          <button onclick="resetBooking()" class="flex-1 py-3.5 bg-slate-100 text-slate-700 font-bold rounded-xl hover:bg-slate-200 transition-all text-sm">Book Another</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== TRACK PANE ===== -->
+  <div id="pane-track" class="hidden max-w-5xl mx-auto px-6 py-10">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div class="space-y-6">
+        <div class="bg-white rounded-2xl p-7 shadow-sm border border-slate-100">
+          <h2 class="font-syne font-extrabold text-2xl mb-5">Track Your Order</h2>
+          <div class="flex gap-3">
+            <div class="flex-1 flex items-center gap-3 bg-slate-50 px-4 py-3.5 rounded-xl border-2 border-transparent focus-within:border-blue-700 focus-within:bg-white transition-all">
+              <span class="material-symbols-outlined text-slate-400" style="font-size:18px">tag</span>
+              <input id="track-code" class="flex-1 bg-transparent border-none p-0 focus:ring-0 text-sm font-medium outline-none placeholder:text-slate-400" placeholder="Booking code e.g. SR-789-QZ" type="text"/>
+            </div>
+            <button onclick="trackRide()" class="px-5 py-3.5 bg-blue-700 text-white font-bold rounded-xl hover:bg-blue-800 transition-all text-sm shadow-lg shadow-blue-700/30">Track</button>
+          </div>
+          <p class="text-xs text-slate-400 mt-2 font-inter">Use the booking code shown after checkout, e.g. SR-XXXXXXXX</p>
+        </div>
+
+        <div id="track-result" class="hidden bg-white rounded-2xl p-7 shadow-sm border border-slate-100 space-y-5">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="text-xs text-slate-400 font-inter uppercase tracking-wider mb-0.5">Booking</p>
+              <p id="tr-code" class="font-syne font-extrabold text-blue-700 text-xl">SR-789-QZ</p>
+              <p id="tr-route" class="text-sm text-slate-600 mt-0.5">Grand Central → JFK Airport</p>
+            </div>
+            <span id="tr-badge" class="px-3 py-1.5 bg-green-100 text-green-700 text-xs font-bold rounded-full uppercase">● En Route</span>
+          </div>
+          <!-- Timeline -->
+          <div class="space-y-0">
+            <div class="flex gap-4">
+              <div class="flex flex-col items-center shrink-0">
+                <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shrink-0"><span class="material-symbols-outlined fill-icon text-white" style="font-size:16px">check</span></div>
+                <div class="w-0.5 h-6 bg-slate-200"></div>
+              </div>
+              <div class="pb-2 pt-1"><p class="font-bold text-sm">Booking Confirmed</p><p class="text-xs text-slate-400">2 min ago</p></div>
+            </div>
+            <div class="flex gap-4">
+              <div class="flex flex-col items-center shrink-0">
+                <div id="tl2dot" class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shrink-0"><span class="material-symbols-outlined fill-icon text-white" style="font-size:16px">check</span></div>
+                <div class="w-0.5 h-6 bg-slate-200"></div>
+              </div>
+              <div class="pb-2 pt-1"><p class="font-bold text-sm">Driver Assigned</p><p id="tl2sub" class="text-xs text-slate-400">Marcus R. · Tesla Model S</p></div>
+            </div>
+            <div class="flex gap-4">
+              <div class="flex flex-col items-center shrink-0">
+                <div id="tl3dot" class="w-8 h-8 rounded-full bg-blue-700 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-white" style="font-size:16px">directions_car</span></div>
+                <div class="w-0.5 h-6 bg-slate-200"></div>
+              </div>
+              <div class="pb-2 pt-1"><p id="tl3title" class="font-bold text-sm">En Route to Pickup</p><p id="tl3sub" class="text-xs text-blue-700 font-bold">~4 min away</p></div>
+            </div>
+            <div class="flex gap-4">
+              <div class="flex flex-col items-center shrink-0">
+                <div id="tl4dot" class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0"><span class="material-symbols-outlined text-slate-400" style="font-size:16px">location_away</span></div>
+              </div>
+              <div class="pt-1"><p class="font-bold text-sm text-slate-400" id="tl4title">Arrived at Destination</p><p class="text-xs text-slate-400">Pending</p></div>
+            </div>
+          </div>
+          <!-- Driver -->
+          <div class="bg-slate-50 rounded-xl p-4 flex items-center gap-3">
+            <div class="w-11 h-11 rounded-full bg-blue-700 flex items-center justify-center text-white font-bold text-sm shrink-0" id="tr-avatar">MR</div>
+            <div>
+              <p class="font-bold text-sm" id="tr-driver">Marcus R.</p>
+              <p class="text-xs text-slate-400" id="tr-vehicle">Tesla Model S · ★ 4.9</p>
+            </div>
+            <div class="ml-auto flex gap-2">
+              <div class="w-9 h-9 rounded-full bg-blue-700 flex items-center justify-center cursor-pointer hover:bg-blue-800 transition shadow-md"><span class="material-symbols-outlined text-white" style="font-size:18px">call</span></div>
+              <div class="w-9 h-9 rounded-full bg-slate-200 flex items-center justify-center cursor-pointer hover:bg-slate-300 transition"><span class="material-symbols-outlined text-slate-600" style="font-size:18px">chat</span></div>
+            </div>
+          </div>
+          <div class="text-center">
+            <button onclick="trackRide()" class="text-xs text-blue-700 font-bold hover:underline font-inter">↻ Refresh status</button>
+          </div>
+        </div>
+
+        <div id="track-empty" class="hidden bg-white rounded-2xl p-8 shadow-sm border border-slate-100 text-center space-y-3">
+          <span class="material-symbols-outlined text-4xl text-slate-300">search_off</span>
+          <p class="font-bold text-slate-600">Booking not found</p>
+          <p class="text-sm text-slate-400">Double-check your code and try again.</p>
+        </div>
+      </div>
+
+      <!-- Tracking Map -->
+      <div class="hidden lg:block">
+        <div class="rounded-2xl overflow-hidden h-full min-h-[520px] relative" style="min-height:520px">
+          <div id="map-track" style="width:100%;height:100%;min-height:520px;border-radius:16px"></div>
+          <div class="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-sm rounded-xl px-4 py-3 shadow-lg">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-bold text-slate-700" id="map-status">Awaiting tracking...</span>
+              <span class="text-xs text-slate-400 font-inter">Live map</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer class="bg-slate-900 text-white py-8 mt-10">
+  <div class="max-w-5xl mx-auto px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+    <span class="font-syne font-extrabold">Swift Ride LLP</span>
+    <div class="flex gap-6 text-sm text-slate-400">
+      <a href="home.html" class="hover:text-white transition-colors">Home</a>
+      <a href="book.html" class="hover:text-white transition-colors">Book</a>
+      <a href="admin.html" class="hover:text-white transition-colors">Admin</a>
+    </div>
+    <p class="text-xs text-slate-500">© 2024 Swift Ride LLP</p>
+  </div>
+</footer>
+
+<script>
+// ============ SUPABASE ============
+const { createClient } = supabase;
+const SUPA_URL = 'https://wbqbfepextyyqtvgiarc.supabase.co';
+const SUPA_KEY = 'sb_publishable_NXovVD4NRDL6R7ZOWk75Wg_FHuTlPHs';
+const db = createClient(SUPA_URL, SUPA_KEY, {
+  auth: { storageKey: 'swiftride-customer' }
+});
+const MAPBOX_ACCESS_TOKEN = window.MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoibG9uZ21hbm4iLCJhIjoiY21uaTB2dGN0MDgxcTJxczQ0dHdpZHV6ayJ9.8k_4bqhRnMPGbQXTZXKSRw';
+const MAPBOX_STYLE_URL = window.MAPBOX_STYLE_URL || 'mapbox://styles/mapbox/streets-v12';
+mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
+window.maplibregl = mapboxgl;
+
+// ============ STRIPE ============
+// ⚠️  Replace with your actual Stripe publishable key from https://dashboard.stripe.com/test/apikeys
+const STRIPE_PK = 'pk_test_51TGRse6IAL25v6JSLZuq5cEFKGiWWmj2QfZFscvXIY6JgmrgEnLzgZD8mqYZp67HhzPARGsaEbu5v08My8xPypil00ZGpZXJmO';
+let stripeInst = null, stripeElements = null;
+window.addEventListener('load', () => {
+  if (typeof Stripe !== 'undefined') {
+    stripeInst = Stripe(STRIPE_PK);
+    stripeElements = stripeInst.elements();
+  }
+});
+let cardElement = null;
+
+function mountStripeCard() {
+  if (cardElement) return;
+  cardElement = stripeElements.create('card', {
+    style: {
+      base: { fontSize: '15px', color: '#1e293b', fontFamily: '"DM Sans", sans-serif', '::placeholder': { color: '#94a3b8' } },
+      invalid: { color: '#ef4444' }
+    },
+    hidePostalCode: true
+  });
+  cardElement.mount('#stripe-card-element');
+  cardElement.on('change', e => {
+    const errEl = document.getElementById('stripe-card-error');
+    if (e.error) { errEl.textContent = e.error.message; errEl.classList.remove('hidden'); }
+    else { errEl.textContent = ''; errEl.classList.add('hidden'); }
+  });
+}
+
+const EDGE_FN_URL = `${SUPA_URL}/functions/v1/create-payment-intent`;
+
+async function createPaymentIntent(amount) {
+  const res = await fetch(EDGE_FN_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPA_KEY}` },
+    body: JSON.stringify({ amount })
+  });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.error || 'Payment setup failed');
+  return json.client_secret;
+}
+
+// ============ STATE ============
+let curStep = 1;
+let rideType = 'Standard';
+let rideFare = '$24.50';
+let rideFareNum = 24.50;
+let allSettings = {};
+let payMethod = 'card';
+let lastCode = '';
+let lastBookingId = '';
+let appliedCoupon = null;
+let pickupCoords = null, dropoffCoords = null;
+let bookMap = null, trackMap = null, bookMapLoaded = false, trackMapLoaded = false;
+let trackCarMarker = null;
+let trackPollInterval = null;
+let activeTrackBookingId = null;
+let trackMotionInterval = null;
+let trackRoute = [];
+let bookRouteOptions = [];
+let activeRouteIndex = 0;
+const WORLD_VIEW = { center: [12, 18], zoom: 1.4 };
+let activeTrackDriverId = null;
+let trackBookingChannel = null;
+let trackDriverChannel = null;
+let trackDriverMarker = null;
+
+// ============ LOCALSTORAGE HELPERS ============
+function storeBookingCode(code, bookingId, pickup, dropoff, rideT) {
+  try {
+    const map = JSON.parse(sessionStorage.getItem('sr_codes') || '{}');
+    map[code] = { id: bookingId, pickup, dropoff, rideType: rideT, pickupCoords, dropoffCoords };
+    sessionStorage.setItem('sr_codes', JSON.stringify(map));
+    // also persist to localStorage for cross-tab
+    localStorage.setItem('sr_codes', JSON.stringify(map));
+  } catch(e) {}
+}
+
+function getBookingFromCode(code) {
+  try {
+    const ss = JSON.parse(sessionStorage.getItem('sr_codes') || '{}');
+    if (ss[code]) return ss[code];
+    const ls = JSON.parse(localStorage.getItem('sr_codes') || '{}');
+    return ls[code] || null;
+  } catch(e) { return null; }
+}
+
+async function fetchBookingById(bookingId) {
+  try {
+    const { data, error } = await db.from('bookings').select('*').eq('id', bookingId).single();
+    if (!error && data) return data;
+  } catch(e) {}
+  // localStorage fallback
+  try {
+    const bookings = JSON.parse(localStorage.getItem('sr_bookings') || '[]');
+    return bookings.find(b => b.id === bookingId) || null;
+  } catch(e) { return null; }
+}
+
+async function waitForBookingPaymentStatus(bookingId, expectedStatus = 'completed') {
+  return new Promise((resolve) => {
+    const timeoutId = setTimeout(() => {
+      db.removeChannel(channel);
+      resolve(false);
+    }, 10000);
+
+    const channel = db.channel(`booking-payment-${bookingId}`)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'bookings', filter: `id=eq.${bookingId}` }, (payload) => {
+        if (payload.new?.payment_status === expectedStatus) {
+          clearTimeout(timeoutId);
+          db.removeChannel(channel);
+          resolve(true);
+        }
+      })
+      .subscribe();
+  });
+}
+
+// ============ MAPS ============
+function initBookMap() {
+  if (bookMap) return;
+  bookMap = new maplibregl.Map({ container: 'map-book', style: MAPBOX_STYLE_URL, center: WORLD_VIEW.center, zoom: WORLD_VIEW.zoom });
+  bookMap.addControl(new maplibregl.NavigationControl(), 'top-right');
+  bookMap.on('load', () => { bookMapLoaded = true; if (pickupCoords && dropoffCoords) drawRouteLine(); });
+}
+
+function drawRouteLine() {
+  if (!bookMap || !bookMapLoaded || !pickupCoords || !dropoffCoords || !bookRouteOptions.length) return;
+  const selected = bookRouteOptions[activeRouteIndex] || bookRouteOptions[0];
+  const alternatives = bookRouteOptions
+    .filter((_, index) => index !== activeRouteIndex)
+    .map(route => ({ type: 'Feature', geometry: { type: 'LineString', coordinates: route.geometry.coordinates } }));
+  const selectedFeature = { type:'Feature', geometry:{ type:'LineString', coordinates:selected.geometry.coordinates } };
+
+  const upsertSource = (id, data) => {
+    if (bookMap.getSource(id)) bookMap.getSource(id).setData(data);
+    else bookMap.addSource(id, { type:'geojson', data });
+  };
+
+  upsertSource('route', selectedFeature);
+  upsertSource('route-alternatives', { type: 'FeatureCollection', features: alternatives });
+
+  if (!bookMap.getLayer('route-alt-line')) {
+    bookMap.addLayer({ id:'route-alt-line', type:'line', source:'route-alternatives', layout:{'line-join':'round','line-cap':'round'}, paint:{'line-color':'#94a3b8','line-width':4,'line-opacity':.35} });
+  }
+  if (!bookMap.getLayer('route-line')) {
+    bookMap.addLayer({ id:'route-line', type:'line', source:'route', layout:{'line-join':'round','line-cap':'round'}, paint:{'line-color':'#1a40c2','line-width':5,'line-opacity':.85} });
+  }
+  if (!bookMap.getLayer('route-dash')) {
+    bookMap.addLayer({ id:'route-dash', type:'line', source:'route', layout:{'line-join':'round','line-cap':'round'}, paint:{'line-color':'#ffffff','line-width':2,'line-opacity':.5,'line-dasharray':[0,4,3]} });
+  }
+}
+
+function initTrackMap() {
+  if (trackMap) return;
+  trackMap = new maplibregl.Map({ container: 'map-track', style: MAPBOX_STYLE_URL, center: WORLD_VIEW.center, zoom: WORLD_VIEW.zoom });
+  trackMap.addControl(new maplibregl.NavigationControl(), 'top-right');
+  trackMap.on('load', async () => {
+    trackMapLoaded = true;
+    if (trackRoute.length) drawTrackRoute(trackRoute, 0);
+    if (activeTrackDriverId) {
+      const driver = await fetchDriverById(activeTrackDriverId);
+      updateTrackedDriverMarker(driver);
+    }
+  });
+}
+
+async function updateBookMapPins() {
+  if (!bookMap) return;
+  ['__pickup_marker','__dropoff_marker'].forEach(k => { if (window[k]) { window[k].remove(); window[k]=null; } });
+  if (pickupCoords) {
+    const el = Object.assign(document.createElement('div'), {style:'width:16px;height:16px;background:#1a40c2;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,.3)'});
+    window.__pickup_marker = new maplibregl.Marker({element:el}).setLngLat(pickupCoords).addTo(bookMap);
+  }
+  if (dropoffCoords) {
+    const el = Object.assign(document.createElement('div'), {style:'width:16px;height:16px;background:#22c55e;border-radius:50%;border:3px solid white;box-shadow:0 2px 8px rgba(0,0,0,.3)'});
+    window.__dropoff_marker = new maplibregl.Marker({element:el}).setLngLat(dropoffCoords).addTo(bookMap);
+  }
+  if (pickupCoords && dropoffCoords) {
+    const route = await syncBookRoutes();
+    const selectedRoute = route || bookRouteOptions[activeRouteIndex];
+    const coords = selectedRoute?.geometry?.coordinates || [pickupCoords, dropoffCoords];
+    const bounds = coords.reduce((acc, point) => acc.extend(point), new maplibregl.LngLatBounds(coords[0], coords[0]));
+    bookMap.fitBounds(bounds, {padding:70, duration:900});
+    if (selectedRoute?.distance) {
+      document.getElementById('map-dist').textContent = `${(selectedRoute.distance / 1000).toFixed(1)} km`;
+      document.getElementById('map-eta').textContent = `${Math.max(1, Math.round(selectedRoute.duration / 60))} min`;
+      document.getElementById('map-book-status').textContent = `${Math.round(selectedRoute.duration / 60)} min by road · ${bookRouteOptions.length} route option${bookRouteOptions.length > 1 ? 's' : ''}`;
+    } else {
+      document.getElementById('map-dist').textContent = 'Preview';
+      document.getElementById('map-eta').textContent = '—';
+      document.getElementById('map-book-status').textContent = 'Road routing unavailable, showing direct fallback';
+    }
+    if (bookMapLoaded) drawRouteLine(); else bookMap.once('load', drawRouteLine);
+  } else if (pickupCoords) {
+    bookMap.flyTo({center:pickupCoords, zoom:14, duration:700});
+    document.getElementById('map-book-status').textContent = 'Pickup set — add destination';
+    document.getElementById('map-eta').textContent = '—';
+    bookRouteOptions = [];
+    renderRouteOptions();
+  } else if (dropoffCoords) {
+    bookMap.flyTo({center:dropoffCoords, zoom:14, duration:700});
+    document.getElementById('map-book-status').textContent = 'Destination set — add pickup';
+    document.getElementById('map-eta').textContent = '—';
+    bookRouteOptions = [];
+    renderRouteOptions();
+  } else {
+    bookMap.flyTo({center:WORLD_VIEW.center, zoom:WORLD_VIEW.zoom, duration:700});
+    document.getElementById('map-book-status').textContent = 'Start typing pickup and drop-off to preview the route.';
+    document.getElementById('map-eta').textContent = '—';
+    bookRouteOptions = [];
+    renderRouteOptions();
+  }
+}
+
+// ============ AUTOCOMPLETE ============
+let acTimers = {};
+function formatPhotonLabel(properties) {
+  return [properties.name, properties.street, properties.city, properties.state, properties.country]
+    .filter(Boolean)
+    .join(', ');
+}
+
+async function geocodeAddress(query) {
+  if (!query) return null;
+  try {
+    const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?limit=1&autocomplete=true&types=address,place,locality,neighborhood&access_token=${MAPBOX_ACCESS_TOKEN}`);
+    const json = await res.json();
+    return json.features?.[0]?.center || null;
+  } catch (error) {
+    return null;
+  }
+}
+
+async function fetchRoadRoutes(start, end) {
+  if (!start || !end) return [];
+  try {
+    const coords = `${start[0]},${start[1]};${end[0]},${end[1]}`;
+    const res = await fetch(`https://api.mapbox.com/directions/v5/mapbox/driving/${coords}?alternatives=true&overview=full&geometries=geojson&steps=false&access_token=${MAPBOX_ACCESS_TOKEN}`);
+    const json = await res.json();
+    if (!res.ok || !json.routes?.length) return [];
+    return json.routes;
+  } catch (error) {
+    return [];
+  }
+}
+
+function renderRouteOptions() {
+  const wrap = document.getElementById('route-options');
+  const list = document.getElementById('route-options-list');
+  if (!bookRouteOptions.length) {
+    wrap.classList.add('hidden');
+    list.innerHTML = '';
+    return;
+  }
+  wrap.classList.remove('hidden');
+  list.innerHTML = bookRouteOptions.map((route, index) => {
+    const isActive = index === activeRouteIndex;
+    const minutes = Math.max(1, Math.round((route.duration || 0) / 60));
+    const km = ((route.distance || 0) / 1000).toFixed(1);
+    return `<button onclick="selectRouteOption(${index})" style="border:${isActive?'2px solid #1d4ed8':'1px solid #cbd5e1'};background:${isActive?'#eff6ff':'#f8fafc'};color:${isActive?'#1d4ed8':'#334155'};border-radius:999px;padding:8px 12px;font-size:.76rem;font-weight:700;cursor:pointer">${index===0?'Best':'Alt ' + index} · ${km} km · ${minutes} min</button>`;
+  }).join('');
+}
+
+function selectRouteOption(index) {
+  activeRouteIndex = index;
+  renderRouteOptions();
+  if (!bookRouteOptions[index]) return;
+  const route = bookRouteOptions[index];
+  document.getElementById('map-dist').textContent = `${((route.distance || 0) / 1000).toFixed(1)} km`;
+  document.getElementById('map-eta').textContent = `${Math.max(1, Math.round((route.duration || 0) / 60))} min`;
+  document.getElementById('map-book-status').textContent = `${Math.round((route.duration || 0) / 60)} min by road · ${bookRouteOptions.length} route option${bookRouteOptions.length > 1 ? 's' : ''}`;
+  const coords = route.geometry?.coordinates || [];
+  if (bookMap && coords.length) {
+    const bounds = coords.reduce((acc, point) => acc.extend(point), new maplibregl.LngLatBounds(coords[0], coords[0]));
+    bookMap.fitBounds(bounds, { padding: 70, duration: 900 });
+  }
+  if (bookMapLoaded) drawRouteLine();
+}
+
+function applyInlineAutocomplete(input, suggestionLabel) {
+  const query = (input.dataset.typedValue || input.value || '').trim();
+  if (!query || !suggestionLabel || document.activeElement !== input) return;
+  const queryLower = query.toLowerCase();
+  const suggestionLower = suggestionLabel.toLowerCase();
+  if (!suggestionLower.startsWith(queryLower) || suggestionLabel.length === query.length) return;
+  input.value = suggestionLabel;
+  input.setSelectionRange(query.length, suggestionLabel.length);
+  input.dataset.autocompleteValue = suggestionLabel;
+}
+
+function formatMapboxLabel(feature) {
+  if (!feature) return '';
+  const contextBits = (feature.context || []).map(item => item.text);
+  return [feature.text, ...contextBits].filter(Boolean).join(', ');
+}
+
+function acSearch(input, listId) {
+  const query = input.value.trim();
+  const list = document.getElementById(listId);
+  if (!list || query.length < 3) {
+    if (list) list.style.display = 'none';
+    return;
+  }
+  clearTimeout(acTimers[listId]);
+  acTimers[listId] = setTimeout(async () => {
+    try {
+      const proximity = pickupCoords ? `&proximity=${pickupCoords[0]},${pickupCoords[1]}` : '';
+      const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?autocomplete=true&limit=5&types=address,place,locality,neighborhood${proximity}&access_token=${MAPBOX_ACCESS_TOKEN}`);
+      const json = await res.json();
+      const features = json.features || [];
+      if (!features.length) { list.style.display = 'none'; return; }
+      list.innerHTML = '';
+      features.forEach(feature => {
+        const label = formatMapboxLabel(feature);
+        const [lng, lat] = feature.center;
+        const item = document.createElement('div');
+        item.className = 'ac-item';
+        item.innerHTML = '<span class="material-symbols-outlined text-slate-400" style="font-size:16px">location_on</span>';
+        item.append(document.createTextNode(label));
+        item.addEventListener('mousedown', () => pickAc(listId, input.id, lng, lat, label));
+        list.appendChild(item);
+      });
+      list.style.display = 'block';
+    } catch (error) {
+      list.style.display = 'none';
+    }
+  }, 250);
+}
+
+function handleAcKeydown(event, input, listId) {
+  const list = document.getElementById(listId);
+  if (event.key === 'Escape' && list) list.style.display = 'none';
+}
+
+function pickAc(listId, inputId, lng, lat, label) {
+  const list = document.getElementById(listId);
+  const input = document.getElementById(inputId);
+  if (input) input.value = label;
+  if (inputId === 'pickup') pickupCoords = [lng, lat];
+  if (inputId === 'dropoff') dropoffCoords = [lng, lat];
+  if (list) list.style.display = 'none';
+  updateBookMapPins();
+}
+
+function hideAc(listId) { document.getElementById(listId).style.display='none'; }
+
+function createRouteCoordinates(start, end, steps = 48) {
+  return Array.from({ length: steps + 1 }, (_, index) => {
+    const t = index / steps;
+    return [
+      start[0] + (end[0] - start[0]) * t,
+      start[1] + (end[1] - start[1]) * t
+    ];
+  });
+}
+
+async function syncBookRoutes() {
+  if (!pickupCoords || !dropoffCoords) {
+    bookRouteOptions = [];
+    activeRouteIndex = 0;
+    renderRouteOptions();
+    return null;
+  }
+
+  const roadRoutes = await fetchRoadRoutes(pickupCoords, dropoffCoords);
+  if (roadRoutes.length) {
+    bookRouteOptions = roadRoutes;
+    activeRouteIndex = 0;
+    renderRouteOptions();
+    return roadRoutes[0];
+  }
+
+  const fallbackRoute = {
+    distance: 0,
+    duration: 0,
+    geometry: { coordinates: [pickupCoords, dropoffCoords] }
+  };
+  bookRouteOptions = [fallbackRoute];
+  activeRouteIndex = 0;
+  renderRouteOptions();
+  return fallbackRoute;
+}
+
+function getRouteSlice(route, endIndex) {
+  return route.slice(0, Math.max(2, endIndex + 1));
+}
+
+function getRemainingSlice(route, startIndex) {
+  return route.slice(Math.min(route.length - 2, startIndex), route.length);
+}
+
+function drawTrackRoute(route, progressIndex) {
+  if (!trackMap || !trackMapLoaded || route.length < 2) return;
+  const completed = {
+    type: 'Feature',
+    geometry: { type: 'LineString', coordinates: getRouteSlice(route, progressIndex) }
+  };
+  const remaining = {
+    type: 'Feature',
+    geometry: { type: 'LineString', coordinates: getRemainingSlice(route, progressIndex) }
+  };
+
+  const upsertSource = (id, data) => {
+    if (trackMap.getSource(id)) trackMap.getSource(id).setData(data);
+    else trackMap.addSource(id, { type: 'geojson', data });
+  };
+
+  upsertSource('track-route-complete', completed);
+  upsertSource('track-route-remaining', remaining);
+
+  if (!trackMap.getLayer('track-route-remaining-line')) {
+    trackMap.addLayer({
+      id: 'track-route-remaining-line',
+      type: 'line',
+      source: 'track-route-remaining',
+      layout: { 'line-join': 'round', 'line-cap': 'round' },
+      paint: { 'line-color': '#94a3b8', 'line-width': 5, 'line-opacity': 0.45 }
+    });
+  }
+  if (!trackMap.getLayer('track-route-complete-line')) {
+    trackMap.addLayer({
+      id: 'track-route-complete-line',
+      type: 'line',
+      source: 'track-route-complete',
+      layout: { 'line-join': 'round', 'line-cap': 'round' },
+      paint: { 'line-color': '#1a40c2', 'line-width': 6, 'line-opacity': 0.9 }
+    });
+  }
+}
+
+function stopTrackMotion() {
+  if (trackMotionInterval) {
+    clearInterval(trackMotionInterval);
+    trackMotionInterval = null;
+  }
+}
+
+function syncTrackingVisualization(status, route) {
+  if (!trackMap || !trackMapLoaded || route.length < 2) return;
+  trackRoute = route;
+
+  if (!trackCarMarker) {
+    const carEl = document.createElement('div');
+    carEl.style.cssText = 'width:36px;height:36px;background:#1a40c2;border-radius:50%;border:3px solid white;box-shadow:0 4px 14px rgba(26,64,194,.5);display:flex;align-items:center;justify-content:center;font-size:16px';
+    carEl.textContent = '🚗';
+    trackCarMarker = new maplibregl.Marker({ element: carEl }).setLngLat(route[0]).addTo(trackMap);
+  }
+
+  stopTrackMotion();
+
+  if (status === 'completed') {
+    const endPos = route[route.length - 1];
+    trackCarMarker.setLngLat(endPos);
+    drawTrackRoute(route, route.length - 1);
+    trackMap.fitBounds(new maplibregl.LngLatBounds(route[0], endPos), { padding: 70, duration: 900 });
+    return;
+  }
+
+  if (status !== 'in_progress') {
+    trackCarMarker.setLngLat(route[0]);
+    drawTrackRoute(route, 0);
+    trackMap.fitBounds(new maplibregl.LngLatBounds(route[0], route[route.length - 1]), { padding: 70, duration: 900 });
+    return;
+  }
+
+  let progressIndex = 0;
+  trackCarMarker.setLngLat(route[0]);
+  drawTrackRoute(route, progressIndex);
+  trackMap.fitBounds(new maplibregl.LngLatBounds(route[0], route[route.length - 1]), { padding: 70, duration: 900 });
+
+  trackMotionInterval = setInterval(() => {
+    progressIndex = Math.min(progressIndex + 1, route.length - 1);
+    const pos = route[progressIndex];
+    trackCarMarker.setLngLat(pos);
+    drawTrackRoute(route, progressIndex);
+    trackMap.easeTo({ center: pos, duration: 900, zoom: Math.max(trackMap.getZoom(), 12) });
+    if (progressIndex >= route.length - 1) stopTrackMotion();
+  }, 1200);
+}
+
+// ============ COUPON ============
+async function applyCoupon() {
+  const code = document.getElementById('coupon-input').value.trim().toUpperCase();
+  const msgEl = document.getElementById('coupon-msg');
+  if (!code) return;
+  try {
+    const { data, error } = await db.from('coupons').select('*').eq('code', code).eq('active', true).single();
+    if (error) {
+      msgEl.textContent = '✗ ' + error.message;
+      msgEl.className = 'text-xs mt-1 font-inter text-red-500';
+      msgEl.classList.remove('hidden');
+      appliedCoupon = null;
+      return;
+    }
+    if (!data) throw new Error('Invalid or expired coupon.');
+    if (data.max_uses && data.uses >= data.max_uses) throw new Error('Coupon usage limit reached.');
+    appliedCoupon = data;
+    const discounted = (rideFareNum * (1 - data.discount_pct / 100)).toFixed(2);
+    msgEl.textContent = `✓ ${data.discount_pct}% off applied! New total: $${discounted}`;
+    msgEl.className = 'text-xs mt-1 font-inter text-green-600 font-bold';
+    msgEl.classList.remove('hidden');
+    document.getElementById('total-fare').textContent = '$' + discounted;
+  } catch(err) {
+    msgEl.textContent = '✗ ' + err.message;
+    msgEl.className = 'text-xs mt-1 font-inter text-red-500';
+    msgEl.classList.remove('hidden');
+    appliedCoupon = null;
+  }
+}
+
+async function loadSettings() {
+  try {
+    const { data, error } = await db.from('settings').select('*');
+    if (!error && data) {
+      allSettings = {};
+      data.forEach(r => { allSettings[r.key] = r.value; });
+    }
+  } catch (e) {}
+  applySettingsToFares();
+}
+
+function applySettingsToFares() {
+  const baseFare = parseFloat(allSettings.base_fare);
+  if (!Number.isFinite(baseFare)) return;
+
+  rideFareNum = baseFare;
+  rideFare = '$' + baseFare.toFixed(2);
+
+  document.querySelectorAll('.ride-card').forEach(card => {
+    const priceEl = card.querySelector('.text-xs.font-bold');
+    if (priceEl) priceEl.textContent = rideFare;
+  });
+
+  const totalFareEl = document.getElementById('total-fare');
+  if (totalFareEl) totalFareEl.textContent = rideFare;
+
+  const mapFareEl = document.getElementById('map-fare');
+  if (mapFareEl) mapFareEl.textContent = rideFare;
+
+  const confirmFareEl = document.getElementById('confirm-fare');
+  if (confirmFareEl) confirmFareEl.textContent = rideFare;
+}
+
+// ============ TABS ============
+function switchTab(t) {
+  document.getElementById('pane-book').classList.toggle('hidden', t !== 'book');
+  document.getElementById('pane-track').classList.toggle('hidden', t !== 'track');
+  document.getElementById('tab-book').classList.toggle('active', t !== 'track');
+  document.getElementById('tab-track').classList.toggle('active', t === 'track');
+  if (t === 'track') setTimeout(initTrackMap, 150);
+}
+
+if (window.location.hash === '#track') switchTab('track');
+
+// ============ STEPS ============
+function goStep(n) {
+  if (n === 2 && curStep === 1) {
+    if (!document.getElementById('dropoff').value.trim()) {
+      document.getElementById('dropoff-wrap').style.borderColor = '#ef4444';
+      document.getElementById('dropoff-err').classList.remove('hidden');
+      document.getElementById('dropoff').focus();
+      setTimeout(() => { document.getElementById('dropoff-wrap').style.borderColor = ''; document.getElementById('dropoff-err').classList.add('hidden'); }, 3000);
+      return;
+    }
+  }
+  if (n === 3 && curStep === 2) {
+    if (!document.getElementById('fname').value.trim() || !document.getElementById('phone').value.trim()) {
+      alert('Please enter your name and phone number to continue.');
+      return;
+    }
+  }
+  document.getElementById('step' + curStep).classList.remove('active');
+  curStep = n;
+  document.getElementById('step' + n).classList.add('active');
+  const widths = {1:'0%',2:'33%',3:'66%',4:'100%'};
+  document.getElementById('step-line').style.width = widths[n];
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('sn' + i);
+    if (i < n) {
+      el.className = 'w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center font-bold text-sm shadow-lg';
+      el.innerHTML = '<span class="material-symbols-outlined fill-icon" style="font-size:18px">check</span>';
+    } else if (i === n) {
+      el.className = 'w-10 h-10 rounded-full bg-blue-700 text-white flex items-center justify-center font-bold text-sm shadow-lg';
+      el.textContent = i;
+    } else {
+      el.className = 'w-10 h-10 rounded-full bg-slate-200 text-slate-500 flex items-center justify-center font-bold text-sm';
+      el.textContent = i;
+    }
+  }
+  if (n === 3) setTimeout(mountStripeCard, 100);
+  window.scrollTo({top:80, behavior:'smooth'});
+}
+
+// ============ RIDE / PAYMENT SELECTION ============
+function selectRide(btn, type, fare) {
+  document.querySelectorAll('.ride-card').forEach(b => { b.classList.remove('sel','border-blue-700','bg-blue-50'); b.classList.add('border-slate-200','bg-white'); });
+  btn.classList.add('sel'); btn.classList.remove('border-slate-200','bg-white');
+  rideType = type; rideFare = fare;
+  rideFareNum = parseFloat(fare.replace('$',''));
+  appliedCoupon = null;
+  document.getElementById('coupon-msg')?.classList.add('hidden');
+  document.getElementById('map-fare').textContent = fare;
+  document.getElementById('total-fare').textContent = fare;
+}
+
+function selectPay(btn, method) {
+  document.querySelectorAll('.pay-card').forEach(b => { b.classList.remove('sel'); b.classList.add('border-slate-200'); });
+  btn.classList.add('sel'); btn.classList.remove('border-slate-200');
+  payMethod = method || 'card';
+}
+
+// ============ CONFIRM BOOKING (with Stripe) ============
+async function confirmBooking() {
+  const errEl = document.getElementById('stripe-card-error');
+  errEl.classList.add('hidden');
+  document.getElementById('pay-text').textContent = 'Processing...';
+  document.getElementById('pay-icon').classList.add('spin');
+  document.getElementById('pay-btn').disabled = true;
+
+  const patientName = (document.getElementById('fname').value.trim() + ' ' + document.getElementById('lname').value.trim()).trim();
+  const phone = document.getElementById('phone').value.trim();
+  const pickup = document.getElementById('pickup').value.trim();
+  const dropoff = document.getElementById('dropoff').value.trim();
+  const date = document.getElementById('ride-date').value;
+  const time = document.getElementById('ride-time').value;
+  const autoDispatchEnabled = String(allSettings.auto_dispatch ?? 'true') === 'true';
+  let fareAmount = rideFareNum;
+  if (appliedCoupon) fareAmount = parseFloat((rideFareNum * (1 - appliedCoupon.discount_pct/100)).toFixed(2));
+
+  const resetBtn = () => {
+    document.getElementById('pay-text').textContent = 'Pay & Confirm';
+    document.getElementById('pay-icon').classList.remove('spin');
+    document.getElementById('pay-btn').disabled = false;
+  };
+
+  try {
+    // Step 1: Create PaymentIntent via Edge Function
+    let paymentIntentId = null;
+    let clientSecret = null;
+    try {
+      clientSecret = await createPaymentIntent(fareAmount);
+    } catch(e) {
+      // Edge function not deployed yet — show helpful message
+      resetBtn();
+      errEl.textContent = 'Payment gateway not set up yet. Deploy the Supabase edge function and add your Stripe key. See README for instructions.';
+      errEl.classList.remove('hidden');
+      return;
+    }
+
+    // Step 2: Confirm payment with Stripe
+    const { error: stripeErr, paymentIntent } = await stripeInst.confirmCardPayment(clientSecret, {
+      payment_method: { card: cardElement, billing_details: { name: patientName } }
+    });
+    if (stripeErr) {
+      resetBtn();
+      errEl.textContent = stripeErr.message;
+      errEl.classList.remove('hidden');
+      return;
+    }
+    paymentIntentId = paymentIntent.id;
+
+    // Step 3: Save booking to Supabase
+    const { data: bookingData, error: bookingErr } = await db.from('bookings').insert([{
+      patient_name: patientName,
+      phone,
+      pickup_address: pickup,
+      destination_address: dropoff,
+      pickup_date: date,
+      pickup_time: time,
+      transport_type: rideType,
+      status: autoDispatchEnabled ? 'confirmed' : 'pending',
+      payment_status: 'pending'
+    }]).select().single();
+    if (bookingErr) throw bookingErr;
+
+    lastBookingId = bookingData.id;
+
+    // Step 4: Save payment record
+    await db.from('payments').insert([{
+      booking_id: bookingData.id,
+      customer_name: patientName,
+      amount: fareAmount,
+      method: payMethod,
+      service_type: rideType,
+      status: 'completed',
+      payment_intent_id: paymentIntentId
+    }]);
+
+    await db.from('bookings').update({ payment_status: 'completed' }).eq('id', bookingData.id);
+    await waitForBookingPaymentStatus(bookingData.id, 'completed');
+
+    // Step 5: Increment coupon uses if applied
+    if (appliedCoupon) {
+      await db.from('coupons').update({ uses: (appliedCoupon.uses||0) + 1 }).eq('id', appliedCoupon.id);
+      appliedCoupon = null;
+    }
+
+    // Step 6: Build booking code & update confirmation UI
+    const code = 'SR-' + bookingData.id.slice(0, 8).toUpperCase();
+    lastCode = code;
+    document.getElementById('booking-code').textContent = code;
+    document.getElementById('confirm-pickup').textContent = pickup || '—';
+    document.getElementById('confirm-dropoff').textContent = dropoff || '—';
+    document.getElementById('confirm-type').textContent = rideType;
+    document.getElementById('confirm-fare').textContent = '$' + fareAmount.toFixed(2);
+
+    // Step 7: Store code locally for tracking
+    storeBookingCode(code, bookingData.id, pickup, dropoff, rideType);
+
+    resetBtn();
+    goStep(4);
+
+  } catch(e) {
+    resetBtn();
+    errEl.textContent = 'Error: ' + (e.message || 'Could not process booking.');
+    errEl.classList.remove('hidden');
+  }
+}
+
+function resetBooking() {
+  ['pickup','dropoff','fname','lname','phone','email'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  pickupCoords = null; dropoffCoords = null;
+  trackRoute = [];
+  stopTrackMotion();
+  rideType = 'Standard'; rideFare = '$24.50'; rideFareNum = 24.50;
+  document.getElementById('map-fare').textContent = '$24.50';
+  document.getElementById('total-fare').textContent = '$24.50';
+  document.querySelectorAll('.ride-card').forEach((b,i) => {
+    b.classList.remove('sel'); b.classList.add('border-slate-200','bg-white');
+    if(i===0){ b.classList.add('sel'); b.classList.remove('border-slate-200','bg-white'); }
+  });
+  cardElement = null; // force remount next time
+  goStep(1);
+  if (bookMap) updateBookMapPins();
+}
+
+function autoTrack() {
+  if (lastCode) {
+    document.getElementById('track-code').value = lastCode;
+    switchTab('track');
+    setTimeout(trackRide, 300);
+  }
+}
+
+// ============ TRACKING (real Supabase) ============
+function stopTrackPolling() {
+  if (trackPollInterval) { clearInterval(trackPollInterval); trackPollInterval = null; }
+}
+
+function startTrackPolling(bookingId) {
+  stopTrackPolling();
+  trackPollInterval = setInterval(async () => {
+    const booking = await fetchBookingById(bookingId);
+    if (!booking) return;
+    updateTrackStatus(booking.status, booking);
+    if (booking.status === 'completed' || booking.status === 'cancelled') stopTrackPolling();
+  }, 10000); // every 10s
+}
+
+async function trackRide() {
+  const code = document.getElementById('track-code').value.trim().toUpperCase();
+  if (!code) return;
+
+  document.getElementById('track-result').classList.add('hidden');
+  document.getElementById('track-empty').classList.add('hidden');
+
+  const stored = getBookingFromCode(code);
+  if (!stored) {
+    document.getElementById('track-empty').classList.remove('hidden');
+    return;
+  }
+
+  const booking = await fetchBookingById(stored.id);
+  if (!booking) {
+    document.getElementById('track-empty').classList.remove('hidden');
+    return;
+  }
+
+  renderTrackResult(booking, stored);
+  activeTrackBookingId = booking.id;
+  activeTrackDriverId = booking.driver_id || null;
+  startTrackRealtime(booking.id, activeTrackDriverId);
+
+  const resolvedPickup = stored?.pickupCoords || await geocodeAddress(booking.pickup_address || stored?.pickup);
+  const resolvedDropoff = stored?.dropoffCoords || await geocodeAddress(booking.destination_address || stored?.dropoff);
+  if (resolvedPickup && resolvedDropoff) {
+    const roadRoutes = await fetchRoadRoutes(resolvedPickup, resolvedDropoff);
+    trackRoute = roadRoutes[0]?.geometry?.coordinates || createRouteCoordinates(resolvedPickup, resolvedDropoff);
+    initTrackMap();
+    if (trackMapLoaded) syncTrackingVisualization(booking.status, trackRoute);
+    else trackMap.once('load', () => syncTrackingVisualization(booking.status, trackRoute));
+  }
+}
+
+function renderTrackResult(booking, stored) {
+  const pickup = booking.pickup_address || stored?.pickup || '—';
+  const dropoff = booking.destination_address || stored?.dropoff || '—';
+  const driverName = booking.driver_name || 'Awaiting assignment';
+  const driverVehicle = booking.driver_vehicle || '';
+
+  document.getElementById('tr-code').textContent = 'SR-' + booking.id.slice(0,8).toUpperCase();
+  document.getElementById('tr-route').textContent = `${pickup.split(',')[0]} → ${dropoff.split(',')[0]}`;
+  document.getElementById('tr-driver').textContent = driverName;
+  document.getElementById('tr-vehicle').textContent = driverVehicle || 'Vehicle TBC';
+  const initials = driverName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('tr-avatar').textContent = initials || '?';
+
+  updateTrackStatus(booking.status, booking);
+  document.getElementById('track-result').classList.remove('hidden');
+}
+
+function parseCoords(value) {
+  if (Array.isArray(value) && value.length === 2) {
+    const lng = Number(value[0]);
+    const lat = Number(value[1]);
+    return Number.isFinite(lng) && Number.isFinite(lat) ? [lng, lat] : null;
+  }
+  if (typeof value === 'string' && value.trim()) {
+    try {
+      return parseCoords(JSON.parse(value));
+    } catch (error) {
+      return null;
+    }
+  }
+  if (value && typeof value === 'object') {
+    const lng = Number(value.lng ?? value.longitude ?? value.lon);
+    const lat = Number(value.lat ?? value.latitude);
+    return Number.isFinite(lng) && Number.isFinite(lat) ? [lng, lat] : null;
+  }
+  return null;
+}
+
+async function fetchDriverById(driverId) {
+  if (!driverId) return null;
+  try {
+    const { data, error } = await db.from('drivers').select('*').eq('id', driverId).single();
+    if (!error) return data;
+  } catch (error) {}
+  return null;
+}
+
+function updateTrackedDriverMarker(driver) {
+  if (!trackMap || !trackMapLoaded) return;
+  const coords = parseCoords(driver?.coords);
+  const isVisible = Boolean(driver?.status === 'Active') && coords;
+  if (!isVisible) {
+    if (trackDriverMarker) {
+      trackDriverMarker.remove();
+      trackDriverMarker = null;
+    }
+    return;
+  }
+  if (!trackDriverMarker) {
+    const el = document.createElement('div');
+    el.style.cssText = 'width:18px;height:18px;border-radius:50%;background:#2563eb;border:3px solid white;box-shadow:0 4px 14px rgba(37,99,235,.35)';
+    trackDriverMarker = new mapboxgl.Marker({ element: el }).setLngLat(coords).addTo(trackMap);
+  } else {
+    trackDriverMarker.setLngLat(coords);
+  }
+}
+
+function stopTrackRealtime() {
+  if (trackBookingChannel) { db.removeChannel(trackBookingChannel); trackBookingChannel = null; }
+  if (trackDriverChannel) { db.removeChannel(trackDriverChannel); trackDriverChannel = null; }
+}
+
+async function startTrackRealtime(bookingId, driverId) {
+  stopTrackRealtime();
+  if (bookingId) {
+    trackBookingChannel = db.channel(`track-booking-${bookingId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'bookings', filter: `id=eq.${bookingId}` }, async (payload) => {
+        const booking = payload.new?.id ? payload.new : await fetchBookingById(bookingId);
+        if (!booking) return;
+        const previousDriverId = activeTrackDriverId;
+        activeTrackDriverId = booking.driver_id || null;
+        renderTrackResult(booking, getBookingFromCode(document.getElementById('track-code').value.trim().toUpperCase()));
+        if (activeTrackDriverId && (!trackDriverChannel || previousDriverId !== activeTrackDriverId)) {
+          await startTrackRealtime(bookingId, activeTrackDriverId);
+          return;
+        }
+        if (activeTrackDriverId) {
+          const driver = await fetchDriverById(activeTrackDriverId);
+          updateTrackedDriverMarker(driver);
+        } else {
+          updateTrackedDriverMarker(null);
+        }
+      })
+      .subscribe();
+  }
+
+  if (driverId) {
+    trackDriverChannel = db.channel(`track-driver-${driverId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'drivers', filter: `id=eq.${driverId}` }, async (payload) => {
+        updateTrackedDriverMarker(payload.new || null);
+      })
+      .subscribe();
+    const driver = await fetchDriverById(driverId);
+    updateTrackedDriverMarker(driver);
+  }
+}
+
+function updateTrackStatus(status, booking) {
+  const map = {
+    pending:     { badge:'● Pending',     badgeCls:'bg-slate-100 text-slate-600',  t3title:'Awaiting confirmation', t3sub:'Being processed...', mapTxt:'Awaiting dispatch' },
+    confirmed:   { badge:'● Confirmed',   badgeCls:'bg-blue-100 text-blue-700',    t3title:'Driver being assigned', t3sub:'Matching nearby driver...', mapTxt:'Driver being matched' },
+    in_progress: { badge:'● En Route',    badgeCls:'bg-green-100 text-green-700',  t3title:'Ride in progress',      t3sub:'On the way to destination', mapTxt:'Ride in progress' },
+    completed:   { badge:'✓ Completed',   badgeCls:'bg-slate-100 text-slate-600',  t3title:'Arrived at destination',t3sub:'Ride complete ✓', mapTxt:'Arrived!' },
+    cancelled:   { badge:'✗ Cancelled',   badgeCls:'bg-red-100 text-red-600',      t3title:'Ride cancelled',        t3sub:'Please rebook', mapTxt:'Cancelled' }
+  };
+  const s = map[status] || map['pending'];
+
+  document.getElementById('tr-badge').textContent = s.badge;
+  document.getElementById('tr-badge').className = 'px-3 py-1.5 text-xs font-bold rounded-full uppercase ' + s.badgeCls;
+  document.getElementById('tl3title').textContent = s.t3title;
+  document.getElementById('tl3sub').textContent = s.t3sub;
+  document.getElementById('tl3sub').className = 'text-xs font-bold ' + (status === 'in_progress' ? 'text-amber-600' : status === 'completed' ? 'text-green-600' : 'text-blue-700');
+  document.getElementById('map-status').textContent = s.mapTxt;
+
+  // Update dot 3 icon/color
+  const tl3 = document.getElementById('tl3dot');
+  if (status === 'in_progress') {
+    tl3.className = 'w-8 h-8 rounded-full bg-amber-500 flex items-center justify-center shrink-0';
+    tl3.innerHTML = '<span class="material-symbols-outlined text-white" style="font-size:16px">directions_car</span>';
+  } else if (status === 'completed' || status === 'confirmed') {
+    tl3.className = 'w-8 h-8 rounded-full bg-blue-700 flex items-center justify-center shrink-0';
+    tl3.innerHTML = '<span class="material-symbols-outlined text-white" style="font-size:16px">directions_car</span>';
+  }
+
+  // Dot 4 — complete
+  if (status === 'completed') {
+    document.getElementById('tl4dot').className = 'w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shrink-0';
+    document.getElementById('tl4dot').innerHTML = '<span class="material-symbols-outlined fill-icon text-white" style="font-size:16px">check</span>';
+    document.getElementById('tl4title').className = 'font-bold text-sm text-slate-800';
+  }
+
+  // If driver was assigned, update the card
+  if (booking?.driver_name) {
+    const card = document.getElementById('tr-driver');
+    if (card) card.textContent = booking.driver_name;
+    const veh = document.getElementById('tr-vehicle');
+    if (veh) veh.textContent = booking.driver_vehicle || 'Vehicle TBC';
+  }
+
+  if (trackRoute.length) syncTrackingVisualization(status, trackRoute);
+}
+
+// Set today as default date
+document.getElementById('ride-date').value = new Date().toISOString().split('T')[0];
+
+// Init book map on desktop load
+window.addEventListener('load', () => {
+  loadSettings();
+  if (window.innerWidth >= 1024) setTimeout(initBookMap, 300);
+});
+</script>
+</body>
+</html>

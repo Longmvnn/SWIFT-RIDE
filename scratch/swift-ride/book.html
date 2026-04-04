@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Booking Flow | Velocity Prime</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&amp;family=DM+Sans:wght@400;500;700&amp;family=Inter:wght@400;500;600&amp;family=Epilogue:wght@700&amp;family=Manrope:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+<script src="./supabase-config.js"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "tertiary-fixed-dim": "#ffb691",
+              "surface": "#f9f9ff",
+              "tertiary-container": "#ac4900",
+              "surface-container-low": "#f3f3fa",
+              "error-container": "#ffdad6",
+              "surface-container-highest": "#e2e2e9",
+              "on-secondary": "#ffffff",
+              "primary-fixed-dim": "#b8c3ff",
+              "secondary-fixed": "#dee0ff",
+              "on-secondary-container": "#001b86",
+              "inverse-primary": "#b8c3ff",
+              "on-primary-fixed": "#001355",
+              "on-background": "#1a1b21",
+              "primary-fixed": "#dde1ff",
+              "surface-tint": "#3052d2",
+              "secondary": "#3f53c4",
+              "on-primary-container": "#e2e5ff",
+              "on-tertiary-container": "#ffe0d2",
+              "on-surface": "#1a1b21",
+              "surface-container": "#ededf5",
+              "surface-dim": "#d9d9e1",
+              "background": "#f9f9ff",
+              "tertiary-fixed": "#ffdbcb",
+              "inverse-on-surface": "#f0f0f8",
+              "outline": "#747686",
+              "on-secondary-fixed": "#000f5c",
+              "surface-container-high": "#e8e7ef",
+              "secondary-container": "#778afe",
+              "surface-container-lowest": "#ffffff",
+              "tertiary": "#863700",
+              "on-tertiary": "#ffffff",
+              "surface-variant": "#e2e2e9",
+              "on-primary-fixed-variant": "#0736ba",
+              "inverse-surface": "#2e3036",
+              "secondary-fixed-dim": "#bac3ff",
+              "on-tertiary-fixed-variant": "#793100",
+              "on-tertiary-fixed": "#341100",
+              "surface-bright": "#f9f9ff",
+              "on-primary": "#ffffff",
+              "on-error-container": "#93000a",
+              "primary": "#1a40c2",
+              "error": "#ba1a1a",
+              "on-secondary-fixed-variant": "#2339ab",
+              "primary-container": "#3b5bdb",
+              "outline-variant": "#c4c5d6",
+              "on-surface-variant": "#444654",
+              "on-error": "#ffffff"
+            },
+            fontFamily: {
+              "headline": ["Epilogue", "Syne", "sans-serif"],
+              "body": ["Manrope", "DM Sans", "sans-serif"],
+              "label": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
+          },
+        },
+      }
+    </script>
+<style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .bg-grid-pattern {
+        background-image: radial-gradient(circle, #c4c5d6 1px, transparent 1px);
+        background-size: 32px 32px;
+        background-color: #f9f9ff;
+      }
+      .glass-panel {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(24px);
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #c4c5d6;
+        border-radius: 10px;
+      }
+    </style>
+</head>
+<body class="bg-grid-pattern font-body text-on-surface min-h-screen selection:bg-primary-fixed-dim selection:text-on-primary-fixed">
+<div id="config-warning" class="mx-auto hidden max-w-7xl rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm font-medium text-amber-700">
+  Update <code>supabase-config.js</code> to enable live fares, coupons, and service status.
+</div>
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-slate-50/80 backdrop-blur-xl shadow-sm flex justify-between items-center px-6 h-16 w-full">
+<div class="flex items-center gap-8">
+<span class="text-2xl font-bold tracking-tighter text-blue-800 font-['Syne']">Velocity Prime</span>
+<nav class="hidden md:flex gap-6">
+<a class="font-['Syne'] font-bold tracking-tight text-blue-700 border-b-2 border-blue-700 pb-1" href="#">Fleet</a>
+<a class="font-['Syne'] font-bold tracking-tight text-slate-600 hover:text-blue-600 transition-colors" href="#">Dispatch</a>
+<a class="font-['Syne'] font-bold tracking-tight text-slate-600 hover:text-blue-600 transition-colors" href="#">Schedules</a>
+<a class="font-['Syne'] font-bold tracking-tight text-slate-600 hover:text-blue-600 transition-colors" href="#">Analytics</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="p-2 text-slate-600 hover:bg-slate-100 rounded-full transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<img alt="User profile avatar" class="w-8 h-8 rounded-full object-cover" data-alt="Professional portrait of a male user in a sleek suit with soft corporate studio lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAOmej86C3T29_tshhTF1C5vbbXmSvOy1eddqQkY9_gyJ_VuKt0UbkDzSkVc0VHDs-j2VDJfMZPGgUOFzM1X6Mzna9IhTVq_5rp7W2SGhqabTqmy3Qmv_UQt2OUgeEO3eHeDk6W1kQ9qnHboltoRujvDHTLezb4aiycEaIwzQNkMHBXfJKe-GC63_EbH98SgY4RqhwDhC07gHfOuaymB1UlK2ZmyvjXJu9NyIT9HTzS1ujnYFwDnXctVgTK1t6k4PAODrBI9uxCa1s"/>
+</div>
+</header>
+<main class="pt-24 pb-32 px-4 md:px-8 max-w-7xl mx-auto">
+<!-- Step Indicator -->
+<div class="mb-12 max-w-3xl mx-auto">
+<div class="flex justify-between items-center relative">
+<!-- Progress Line -->
+<div class="absolute top-1/2 left-0 w-full h-0.5 bg-outline-variant -translate-y-1/2 z-0"></div>
+<div class="absolute top-1/2 left-0 w-1/3 h-0.5 bg-primary -translate-y-1/2 z-0 transition-all duration-700"></div>
+<!-- Steps -->
+<div class="relative z-10 flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-primary text-on-primary flex items-center justify-center font-bold shadow-lg shadow-primary/20">1</div>
+<span class="text-xs font-label uppercase tracking-widest font-bold text-primary">Ride Details</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest text-outline flex items-center justify-center font-bold">2</div>
+<span class="text-xs font-label uppercase tracking-widest text-outline">Passenger</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest text-outline flex items-center justify-center font-bold">3</div>
+<span class="text-xs font-label uppercase tracking-widest text-outline">Payment</span>
+</div>
+<div class="relative z-10 flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest text-outline flex items-center justify-center font-bold">4</div>
+<span class="text-xs font-label uppercase tracking-widest text-outline">Confirm</span>
+</div>
+</div>
+</div>
+<!-- Main Booking Content (Step 1 View) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+<!-- Left: Form Inputs -->
+<div class="lg:col-span-5 space-y-8">
+<div class="bg-surface-container-lowest p-8 rounded-xl shadow-[0_20px_40px_rgba(26,27,33,0.04)]">
+<h1 class="font-headline text-3xl font-extrabold tracking-tight mb-8 text-on-surface">Book Your Journey</h1>
+<div class="mb-6 flex flex-wrap items-center gap-3">
+<span id="service-status-banner" class="inline-flex rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">Bookings open</span>
+<span id="dispatch-mode-text" class="text-sm text-outline">Auto dispatch is enabled. The system will assign the best available driver.</span>
+</div>
+<p id="booking-status" class="mb-6 text-sm font-medium text-slate-500"></p>
+<div class="space-y-6">
+<!-- Pickup -->
+<div class="relative group">
+<label class="block text-xs font-label uppercase tracking-widest text-outline mb-2 ml-1">Pickup Location</label>
+<div class="flex items-center gap-3 bg-surface-container-low px-4 py-4 rounded-xl transition-all group-focus-within:bg-white group-focus-within:ring-2 group-focus-within:ring-primary/10">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">location_on</span>
+<input class="w-full bg-transparent border-none p-0 focus:ring-0 text-on-surface font-medium placeholder:text-outline/50" placeholder="Enter pickup location" type="text" value="Grand Central Terminal, NY"/>
+</div>
+</div>
+<!-- Dropoff -->
+<div class="relative group">
+<label class="block text-xs font-label uppercase tracking-widest text-outline mb-2 ml-1">Dropoff Destination</label>
+<div class="flex items-center gap-3 bg-surface-container-low px-4 py-4 rounded-xl transition-all group-focus-within:bg-white group-focus-within:ring-2 group-focus-within:ring-primary/10 border-b-2 border-outline-variant focus-within:border-primary">
+<span class="material-symbols-outlined text-secondary">flag</span>
+<input class="w-full bg-transparent border-none p-0 focus:ring-0 text-on-surface font-medium placeholder:text-outline/50" placeholder="Where to?" type="text"/>
+</div>
+</div>
+</div>
+<!-- Ride Types -->
+<div class="mt-10">
+<label class="block text-xs font-label uppercase tracking-widest text-outline mb-4 ml-1">Select Ride Type</label>
+<div class="grid grid-cols-2 gap-4">
+<!-- Standard -->
+<button class="relative p-4 rounded-xl border-2 border-primary bg-primary/5 text-left transition-all" data-ride-option="standard" type="button">
+<div class="flex justify-between items-start mb-2">
+<span class="material-symbols-outlined text-primary">directions_car</span>
+<span class="text-xs font-bold text-primary" data-ride-price>$24.50</span>
+</div>
+<h3 class="font-bold text-sm">Standard</h3>
+<p class="text-[10px] text-outline leading-tight">Comfortable 4-seater sedans for daily commutes.</p>
+<div class="absolute top-2 right-2 bg-primary rounded-full p-0.5">
+<span class="material-symbols-outlined text-[12px] text-white">check</span>
+</div>
+</button>
+<!-- Premium -->
+<button class="relative p-4 rounded-xl border-2 border-transparent bg-surface-container-low hover:bg-surface-container-high text-left transition-all" data-ride-option="premium" type="button">
+<div class="flex justify-between items-start mb-2">
+<span class="material-symbols-outlined text-on-surface-variant">auto_awesome</span>
+<span class="text-xs font-bold" data-ride-price>$42.00</span>
+</div>
+<h3 class="font-bold text-sm">Premium</h3>
+<p class="text-[10px] text-outline leading-tight">Luxury black cars with executive amenities.</p>
+</button>
+<!-- XL -->
+<button class="relative p-4 rounded-xl border-2 border-transparent bg-surface-container-low hover:bg-surface-container-high text-left transition-all" data-ride-option="xl" type="button">
+<div class="flex justify-between items-start mb-2">
+<span class="material-symbols-outlined text-on-surface-variant">group</span>
+<span class="text-xs font-bold" data-ride-price>$38.90</span>
+</div>
+<h3 class="font-bold text-sm">XL / Van</h3>
+<p class="text-[10px] text-outline leading-tight">Spacious vehicles for up to 6 passengers.</p>
+</button>
+<!-- Medical -->
+<button class="relative p-4 rounded-xl border-2 border-transparent bg-surface-container-low hover:bg-surface-container-high text-left transition-all" data-ride-option="medical" type="button">
+<div class="flex justify-between items-start mb-2">
+<span class="material-symbols-outlined text-on-surface-variant">medical_services</span>
+<span class="text-xs font-bold" data-ride-price>$30.00</span>
+</div>
+<h3 class="font-bold text-sm">Medical</h3>
+<p class="text-[10px] text-outline leading-tight">Accessible vehicles with specialized care support.</p>
+</button>
+</div>
+</div>
+<button class="w-full mt-10 py-4 px-6 bg-gradient-to-r from-primary to-primary-container text-white font-bold rounded-xl shadow-lg shadow-primary/30 flex items-center justify-center gap-2 hover:brightness-110 transition-all">
+                        Next: Passenger Info
+                        <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Right: Map Preview -->
+<div class="lg:col-span-7 h-[600px] sticky top-24">
+<div class="w-full h-full rounded-3xl overflow-hidden relative shadow-2xl">
+<div class="absolute inset-0 bg-slate-200 animate-pulse hidden"></div>
+<img alt="City map layout" class="w-full h-full object-cover grayscale opacity-50" data-alt="Detailed monochromatic topographic map of New York City with blue glowing navigation paths and street markers" data-location="New York City" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDmQKOXU3lPz5tDC6DFwqzqTJvBh5V65k6XBHX_3-YzMSjCZFpcyRcolGFiWdbkkV83FSIWkiRGkcThvrbwAal4nf6smkiWajdch2Y6jPz5-Sm5ECdIBBCxse2uYxnwwmngxRp70BgaSTts5vbhAIwRyNX_N1GP6sUMOedG3DA7xKTnEKJD2Qt-5wamhCcDikqEla7uAWktBtgJg_DK_fxRC8LZNI1Bx4Btrr7Vt57UICyvnXjxXLlmO_sQlmrPHmFQDiDOaLz8pBI"/>
+<!-- Floating Map Overlay -->
+<div class="absolute top-6 left-6 right-6 flex justify-between items-start">
+<div class="glass-panel p-4 rounded-2xl shadow-lg border border-white/20">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">near_me</span>
+</div>
+<div>
+<p class="text-[10px] font-label uppercase tracking-tighter text-outline">Distance Estimate</p>
+<p class="font-headline text-lg font-bold">12.4 miles</p>
+</div>
+</div>
+</div>
+<div class="glass-panel p-4 rounded-2xl shadow-lg border border-white/20">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-secondary/10 flex items-center justify-center">
+<span class="material-symbols-outlined text-secondary">schedule</span>
+</div>
+<div>
+<p class="text-[10px] font-label uppercase tracking-tighter text-outline">ETA</p>
+<p class="font-headline text-lg font-bold">18 mins</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Marker Visualization -->
+<div class="absolute top-1/2 left-1/4 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
+<div class="w-6 h-6 rounded-full bg-primary border-4 border-white shadow-xl mb-1 scale-110 animate-bounce"></div>
+<div class="bg-primary px-3 py-1 rounded-full text-[10px] text-white font-bold whitespace-nowrap">Pickup</div>
+</div>
+<div class="absolute top-1/3 right-1/4 transform translate-x-1/2 -translate-y-1/2 flex flex-col items-center">
+<div class="w-6 h-6 rounded-full bg-secondary border-4 border-white shadow-xl mb-1 scale-110"></div>
+<div class="bg-secondary px-3 py-1 rounded-full text-[10px] text-white font-bold whitespace-nowrap">Dropoff</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Step 3 Overlay (Simulated Toggle/Visible) -->
+<div class="fixed inset-0 z-[100] bg-on-background/40 backdrop-blur-md flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity">
+<div class="bg-surface max-w-lg w-full rounded-3xl overflow-hidden shadow-2xl transform translate-y-4 transition-transform">
+<div class="p-8">
+<div class="flex justify-between items-center mb-6">
+<h2 class="font-headline text-2xl font-bold">Finalize Payment</h2>
+<button class="text-outline hover:text-on-surface">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Fare Breakdown -->
+<div class="bg-surface-container p-6 rounded-2xl mb-8">
+<div class="space-y-3">
+<div class="flex justify-between text-sm">
+<span class="text-outline">Base Fare</span>
+<span id="base-fare-value" class="font-medium">$12.00</span>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-outline">Distance (12.4 mi)</span>
+<span id="distance-fare-value" class="font-medium">$10.50</span>
+</div>
+<div class="flex justify-between text-sm pb-3 border-b border-outline-variant">
+<span class="text-outline">Service Fee</span>
+<span id="service-fee-value" class="font-medium">$2.00</span>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-outline">Subtotal</span>
+<span id="subtotal-value" class="font-medium">$24.50</span>
+</div>
+<form id="coupon-form" class="space-y-3 border-b border-outline-variant pb-3">
+<label class="block text-xs font-label uppercase tracking-widest text-outline" for="coupon-code">Coupon</label>
+<div class="flex gap-3">
+<input id="coupon-code" class="flex-1 rounded-xl border border-outline-variant bg-surface-container-low px-4 py-3 text-sm outline-none focus:border-primary focus:ring-0" placeholder="Enter coupon code" type="text"/>
+<button class="rounded-xl bg-secondary px-4 py-3 text-sm font-bold text-white" type="submit">Apply</button>
+</div>
+<p id="coupon-status" class="text-sm font-medium text-slate-500"></p>
+</form>
+<div id="discount-row" class="hidden flex justify-between text-sm">
+<span class="text-outline">Discount</span>
+<span id="discount-value" class="font-medium text-emerald-600">- $0.00</span>
+</div>
+<div class="flex justify-between items-end pt-2">
+<span class="font-bold text-on-surface">Total Amount</span>
+<span id="total-value" class="text-2xl font-headline font-extrabold text-primary">$24.50</span>
+</div>
+</div>
+</div>
+<!-- Stripe Element Simulation -->
+<div class="space-y-4">
+<label class="block text-xs font-label uppercase tracking-widest text-outline">Payment Method</label>
+<div class="grid grid-cols-3 gap-3 mb-6">
+<button class="flex flex-col items-center justify-center p-3 rounded-xl border-2 border-primary bg-primary/5">
+<span class="material-symbols-outlined text-primary mb-1">credit_card</span>
+<span class="text-[10px] font-bold">Card</span>
+</button>
+<button class="flex flex-col items-center justify-center p-3 rounded-xl border-2 border-transparent bg-surface-container-low">
+<span class="material-symbols-outlined text-outline mb-1">brand_family</span>
+<span class="text-[10px] font-bold">Apple</span>
+</button>
+<button class="flex flex-col items-center justify-center p-3 rounded-xl border-2 border-transparent bg-surface-container-low">
+<span class="material-symbols-outlined text-outline mb-1">wallet</span>
+<span class="text-[10px] font-bold">Google</span>
+</button>
+</div>
+<div class="bg-surface-container-low p-4 rounded-xl border-b-2 border-primary">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-outline">credit_card</span>
+<input class="bg-transparent border-none p-0 focus:ring-0 w-full font-medium" readonly="" type="text" value="**** **** **** 4242"/>
+</div>
+</div>
+</div>
+<button class="w-full mt-8 py-4 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/30 hover:brightness-110 transition-all">
+                        Pay &amp; Complete Booking
+                    </button>
+</div>
+</div>
+</div>
+<!-- Step 4: Success View (Mockup Section) -->
+<section class="mt-24 max-w-2xl mx-auto text-center hidden">
+<div class="mb-8 flex flex-col items-center">
+<div class="w-24 h-24 rounded-full bg-emerald-100 flex items-center justify-center mb-6">
+<span class="material-symbols-outlined text-5xl text-emerald-600" style="font-variation-settings: 'wght' 700;">check_circle</span>
+</div>
+<h1 class="font-headline text-4xl font-extrabold mb-2">Ride Scheduled!</h1>
+<p class="text-outline">Your Velocity Prime experience is being prepared.</p>
+</div>
+<div class="bg-white p-8 rounded-3xl shadow-xl border border-surface-container-high mb-10 text-left">
+<div class="flex justify-between items-start mb-8">
+<div>
+<p class="text-[10px] font-label uppercase tracking-widest text-outline">Booking Code</p>
+<p class="text-2xl font-headline font-extrabold text-primary tracking-tighter">VP-789-QZ</p>
+</div>
+<div class="text-right">
+<p class="text-[10px] font-label uppercase tracking-widest text-outline">Pickup In</p>
+<p class="text-xl font-bold">~12 Minutes</p>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex items-center gap-4">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<p class="text-sm font-medium">Grand Central Terminal, NY</p>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<p class="text-sm font-medium">JFK International Airport</p>
+</div>
+</div>
+<div class="mt-8 pt-8 border-t border-surface-container flex items-center gap-4">
+<img alt="Driver portrait" class="w-12 h-12 rounded-full object-cover" data-alt="Close-up profile of a friendly professional driver in uniform with a slight smile and well-lit interior vehicle background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAJsoSDgcrB55uBwHuGe-_dkQiXXr8ak1P8clcIspaB0Lb_t5krQalBvxkhdFaX7tceSaqicrHjxBrxWM8Dbsk4COSMnENvV_O5Ay6c6yYqTlC7rsLtJ9q_TJvnIYWJumCwsIgo0Qltubbk2Bfjh3ImO7pbzMcPkCrivJzU2RXQvte2nmd_BANyZGZcXUV5iFWFPAxM4Fmke1icMicdUL8AoH_ybz6ECnuO52FV1JRtPlLLUU6G9wSMC00MSsGXD4ZF7HKhQ59e4oE"/>
+<div>
+<p class="text-xs text-outline">Your Driver</p>
+<p class="font-bold">Marcus R. <span class="text-xs font-normal text-amber-500 ml-1">★ 4.9</span></p>
+</div>
+<button class="ml-auto w-10 h-10 rounded-full bg-surface-container-low flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">call</span>
+</button>
+</div>
+</div>
+<div class="flex gap-4">
+<button class="flex-1 py-4 bg-primary text-white font-bold rounded-xl shadow-lg">Track My Ride</button>
+<button class="flex-1 py-4 bg-surface-container-high text-on-surface font-bold rounded-xl">Book Another</button>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<nav class="md:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-end px-4 pb-6 h-20 bg-white/90 backdrop-blur-2xl rounded-t-3xl border-t border-slate-200/50 shadow-[0_-10px_40px_rgba(0,0,0,0.04)]">
+<a class="flex flex-col items-center justify-center bg-blue-600 text-white rounded-2xl p-3 mb-1 transform -translate-y-2 shadow-lg shadow-blue-500/40" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-['DM_Sans'] text-[10px] uppercase tracking-widest mt-1">Home</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 p-2" href="#">
+<span class="material-symbols-outlined">list_alt</span>
+<span class="font-['DM_Sans'] text-[10px] uppercase tracking-widest mt-1">Jobs</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 p-2" href="#">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="font-['DM_Sans'] text-[10px] uppercase tracking-widest mt-1">Earnings</span>
+</a>
+<a class="flex flex-col items-center justify-center text-slate-400 p-2" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-['DM_Sans'] text-[10px] uppercase tracking-widest mt-1">Profile</span>
+</a>
+</nav>
+<!-- Footer -->
+<footer class="w-full py-12 border-t border-slate-200 bg-slate-50">
+<div class="max-w-7xl mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-6">
+<div class="flex flex-col gap-2 items-center md:items-start">
+<span class="font-['Syne'] font-bold text-slate-900 text-xl">Velocity Prime</span>
+<p class="font-['DM_Sans'] text-xs text-slate-500">© 2024 Velocity Prime. The Motion Architect.</p>
+</div>
+<div class="flex gap-8">
+<a class="font-['DM_Sans'] text-xs text-slate-500 hover:text-slate-900 transition-colors underline underline-offset-4" href="#">Privacy Policy</a>
+<a class="font-['DM_Sans'] text-xs text-slate-500 hover:text-slate-900 transition-colors underline underline-offset-4" href="#">Terms of Service</a>
+<a class="font-['DM_Sans'] text-xs text-slate-500 hover:text-slate-900 transition-colors underline underline-offset-4" href="#">Carrier Agreement</a>
+<a class="font-['DM_Sans'] text-xs text-slate-500 hover:text-slate-900 transition-colors underline underline-offset-4" href="#">Help Center</a>
+</div>
+</div>
+</footer>
+<script type="module" src="./book.js"></script>
+</body></html>
