@@ -234,9 +234,10 @@
       <div class="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 space-y-5">
         <div><h2 class="font-syne font-extrabold text-2xl">Payment</h2><p class="text-slate-400 text-sm mt-1">Review fare and pay securely.</p></div>
         <div class="bg-slate-50 rounded-xl p-5 space-y-3">
-          <div class="flex justify-between text-sm"><span class="text-slate-500">Base Fare</span><span class="font-medium">$12.00</span></div>
-          <div class="flex justify-between text-sm"><span class="text-slate-500">Distance (12.4 mi)</span><span class="font-medium">$10.50</span></div>
-          <div class="flex justify-between text-sm pb-3 border-b border-slate-200"><span class="text-slate-500">Service Fee</span><span class="font-medium">$2.00</span></div>
+          <div class="flex justify-between text-sm"><span class="text-slate-500">Start Rate</span><span id="fare-start-rate" class="font-medium">$0.00</span></div>
+          <div class="flex justify-between text-sm"><span id="fare-distance-label" class="text-slate-500">Distance (0.0 km)</span><span id="fare-distance-rate" class="font-medium">$0.00</span></div>
+          <div class="flex justify-between text-sm"><span id="fare-time-label" class="text-slate-500">Time (0 min)</span><span id="fare-time-rate" class="font-medium">$0.00</span></div>
+          <div class="flex justify-between text-sm pb-3 border-b border-slate-200"><span id="fare-surge-label" class="text-slate-500">Surge x1.00</span><span id="fare-surge-amount" class="font-medium">$0.00</span></div>
           <div class="flex justify-between items-center pt-1">
             <span class="font-bold">Total</span>
             <span id="total-fare" class="text-2xl font-syne font-extrabold text-blue-700">$24.50</span>
@@ -340,10 +341,10 @@
           <div class="flex items-start justify-between">
             <div>
               <p class="text-xs text-slate-400 font-inter uppercase tracking-wider mb-0.5">Booking</p>
-              <p id="tr-code" class="font-syne font-extrabold text-blue-700 text-xl">SR-789-QZ</p>
-              <p id="tr-route" class="text-sm text-slate-600 mt-0.5">Grand Central → JFK Airport</p>
+              <p id="tr-code" class="font-syne font-extrabold text-blue-700 text-xl">—</p>
+              <p id="tr-route" class="text-sm text-slate-600 mt-0.5">—</p>
             </div>
-            <span id="tr-badge" class="px-3 py-1.5 bg-green-100 text-green-700 text-xs font-bold rounded-full uppercase">● En Route</span>
+            <span id="tr-badge" class="px-3 py-1.5 bg-slate-100 text-slate-600 text-xs font-bold rounded-full uppercase">● Pending</span>
           </div>
           <!-- Timeline -->
           <div class="space-y-0">
@@ -352,14 +353,14 @@
                 <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shrink-0"><span class="material-symbols-outlined fill-icon text-white" style="font-size:16px">check</span></div>
                 <div class="w-0.5 h-6 bg-slate-200"></div>
               </div>
-              <div class="pb-2 pt-1"><p class="font-bold text-sm">Booking Confirmed</p><p class="text-xs text-slate-400">2 min ago</p></div>
+              <div class="pb-2 pt-1"><p class="font-bold text-sm">Booking Confirmed</p><p id="tl1sub" class="text-xs text-slate-400">Waiting for booking details</p></div>
             </div>
             <div class="flex gap-4">
               <div class="flex flex-col items-center shrink-0">
                 <div id="tl2dot" class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shrink-0"><span class="material-symbols-outlined fill-icon text-white" style="font-size:16px">check</span></div>
                 <div class="w-0.5 h-6 bg-slate-200"></div>
               </div>
-              <div class="pb-2 pt-1"><p class="font-bold text-sm">Driver Assigned</p><p id="tl2sub" class="text-xs text-slate-400">Marcus R. · Tesla Model S</p></div>
+              <div class="pb-2 pt-1"><p class="font-bold text-sm">Driver Assigned</p><p id="tl2sub" class="text-xs text-slate-400">Finding your driver...</p></div>
             </div>
             <div class="flex gap-4">
               <div class="flex flex-col items-center shrink-0">
@@ -376,11 +377,11 @@
             </div>
           </div>
           <!-- Driver -->
-          <div class="bg-slate-50 rounded-xl p-4 flex items-center gap-3">
-            <div class="w-11 h-11 rounded-full bg-blue-700 flex items-center justify-center text-white font-bold text-sm shrink-0" id="tr-avatar">MR</div>
-            <div>
-              <p class="font-bold text-sm" id="tr-driver">Marcus R.</p>
-              <p class="text-xs text-slate-400" id="tr-vehicle">Tesla Model S · ★ 4.9</p>
+          <div id="track-driver-card" class="bg-slate-50 rounded-xl p-4 flex items-center gap-3">
+            <div class="w-11 h-11 rounded-full bg-blue-700 flex items-center justify-center text-white font-bold text-sm shrink-0" id="tr-avatar">...</div>
+            <div id="track-driver-meta">
+              <p class="font-bold text-sm" id="tr-driver">Finding your driver...</p>
+              <p class="text-xs text-slate-400 hidden" id="tr-vehicle"></p>
             </div>
             <div class="ml-auto flex gap-2">
               <div class="w-9 h-9 rounded-full bg-blue-700 flex items-center justify-center cursor-pointer hover:bg-blue-800 transition shadow-md"><span class="material-symbols-outlined text-white" style="font-size:18px">call</span></div>
@@ -488,6 +489,7 @@ let rideType = 'Standard';
 let rideFare = '$24.50';
 let rideFareNum = 24.50;
 let allSettings = {};
+let pricingConfig = { categories: [], surgeMultiplier: 1 };
 let payMethod = 'card';
 let lastCode = '';
 let lastBookingId = '';
@@ -505,6 +507,7 @@ const WORLD_VIEW = { center: [12, 18], zoom: 1.4 };
 let activeTrackDriverId = null;
 let trackBookingChannel = null;
 let trackDriverChannel = null;
+let trackProfileChannel = null;
 let trackDriverMarker = null;
 
 // ============ LOCALSTORAGE HELPERS ============
@@ -712,6 +715,7 @@ function selectRouteOption(index) {
   document.getElementById('map-dist').textContent = `${((route.distance || 0) / 1000).toFixed(1)} km`;
   document.getElementById('map-eta').textContent = `${Math.max(1, Math.round((route.duration || 0) / 60))} min`;
   document.getElementById('map-book-status').textContent = `${Math.round((route.duration || 0) / 60)} min by road · ${bookRouteOptions.length} route option${bookRouteOptions.length > 1 ? 's' : ''}`;
+  recalculateRideFare(route);
   const coords = route.geometry?.coordinates || [];
   if (bookMap && coords.length) {
     const bounds = coords.reduce((acc, point) => acc.extend(point), new maplibregl.LngLatBounds(coords[0], coords[0]));
@@ -802,6 +806,7 @@ async function syncBookRoutes() {
     bookRouteOptions = [];
     activeRouteIndex = 0;
     renderRouteOptions();
+    recalculateRideFare(null);
     return null;
   }
 
@@ -810,6 +815,7 @@ async function syncBookRoutes() {
     bookRouteOptions = roadRoutes;
     activeRouteIndex = 0;
     renderRouteOptions();
+    recalculateRideFare(roadRoutes[0]);
     return roadRoutes[0];
   }
 
@@ -821,6 +827,7 @@ async function syncBookRoutes() {
   bookRouteOptions = [fallbackRoute];
   activeRouteIndex = 0;
   renderRouteOptions();
+  recalculateRideFare(fallbackRoute);
   return fallbackRoute;
 }
 
@@ -921,6 +928,145 @@ function syncTrackingVisualization(status, route) {
   }, 1200);
 }
 
+function formatCurrency(amount) {
+  const numericAmount = Number.isFinite(amount) ? amount : 0;
+  return '$' + numericAmount.toFixed(2);
+}
+
+function normalizeCategoryLabel(value) {
+  return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function getCategoryAliases(categoryName) {
+  const normalized = normalizeCategoryLabel(categoryName);
+  const aliases = new Set([normalized]);
+  if (normalized === 'standard') aliases.add('economy');
+  if (normalized === 'premium') aliases.add('executive');
+  if (normalized === 'medical') aliases.add('med');
+  if (normalized === 'xl' || normalized === 'xlvan' || normalized === 'van') {
+    aliases.add('xl');
+    aliases.add('xlvan');
+    aliases.add('van');
+  }
+  return aliases;
+}
+
+function findVehicleCategoryConfig(categoryName) {
+  const aliases = getCategoryAliases(categoryName);
+  return pricingConfig.categories.find((row) => {
+    const candidates = [
+      row.category,
+      row.name,
+      row.slug,
+      row.code,
+      row.type,
+      row.service_type,
+      row.vehicle_type,
+      row.title
+    ].map(normalizeCategoryLabel).filter(Boolean);
+    return candidates.some(candidate => aliases.has(candidate));
+  }) || null;
+}
+
+function getActiveRoute() {
+  return bookRouteOptions[activeRouteIndex] || bookRouteOptions[0] || null;
+}
+
+function updateFareBreakdown(details = {}) {
+  const {
+    startRate = 0,
+    distanceKm = 0,
+    distanceCharge = 0,
+    minutes = 0,
+    minuteCharge = 0,
+    surgeMultiplier = pricingConfig.surgeMultiplier || 1,
+    surgeAmount = 0,
+    total = rideFareNum
+  } = details;
+
+  const updates = [
+    ['fare-start-rate', formatCurrency(startRate)],
+    ['fare-distance-label', `Distance (${distanceKm.toFixed(1)} km)`],
+    ['fare-distance-rate', formatCurrency(distanceCharge)],
+    ['fare-time-label', `Time (${Math.max(0, Math.round(minutes))} min)`],
+    ['fare-time-rate', formatCurrency(minuteCharge)],
+    ['fare-surge-label', `Surge x${surgeMultiplier.toFixed(2)}`],
+    ['fare-surge-amount', formatCurrency(surgeAmount)],
+    ['map-fare', formatCurrency(total)],
+    ['total-fare', formatCurrency(total)],
+    ['confirm-fare', formatCurrency(total)]
+  ];
+
+  updates.forEach(([id, value]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  });
+}
+
+async function loadPricingConfig() {
+  try {
+    const [categoriesRes, appSettingsRes] = await Promise.all([
+      db.from('vehicle_categories').select('*'),
+      db.from('app_settings').select('*')
+    ]);
+
+    if (!categoriesRes.error && Array.isArray(categoriesRes.data)) {
+      pricingConfig.categories = categoriesRes.data;
+    }
+
+    if (!appSettingsRes.error && Array.isArray(appSettingsRes.data) && appSettingsRes.data.length) {
+      const settingsRows = appSettingsRes.data;
+      const keyedValue = settingsRows.find(row => row.key === 'surge_multiplier' || row.name === 'surge_multiplier');
+      const rawSurge = keyedValue?.value ?? keyedValue?.setting_value ?? keyedValue?.setting ?? settingsRows[0]?.surge_multiplier;
+      const parsedSurge = parseFloat(rawSurge);
+      pricingConfig.surgeMultiplier = Number.isFinite(parsedSurge) && parsedSurge > 0 ? parsedSurge : 1;
+    }
+  } catch (error) {
+    pricingConfig = { ...pricingConfig, surgeMultiplier: pricingConfig.surgeMultiplier || 1 };
+  }
+}
+
+function computeFareForCategory(categoryConfig, route = getActiveRoute()) {
+  if (!categoryConfig) return null;
+  const startRate = parseFloat(categoryConfig.start_rate) || 0;
+  const distanceRate = parseFloat(categoryConfig.distance_rate) || 0;
+  const minuteRate = parseFloat(categoryConfig.minute_rate) || 0;
+  const distanceKm = Math.max(0, (route?.distance || 0) / 1000);
+  const minutes = Math.max(0, (route?.duration || 0) / 60);
+  const distanceCharge = distanceKm * distanceRate;
+  const minuteCharge = minutes * minuteRate;
+  const subtotal = startRate + distanceCharge + minuteCharge;
+  const surgeMultiplier = Number.isFinite(pricingConfig.surgeMultiplier) && pricingConfig.surgeMultiplier > 0 ? pricingConfig.surgeMultiplier : 1;
+  const total = parseFloat((subtotal * surgeMultiplier).toFixed(2));
+  const surgeAmount = parseFloat((total - subtotal).toFixed(2));
+  return { startRate, distanceKm, distanceCharge, minutes, minuteCharge, surgeMultiplier, total, surgeAmount };
+}
+
+async function recalculateRideFare(route = getActiveRoute()) {
+  const categoryConfig = findVehicleCategoryConfig(rideType);
+  if (!categoryConfig) {
+    updateFareBreakdown();
+    return;
+  }
+
+  const fareDetails = computeFareForCategory(categoryConfig, route);
+  const { startRate, distanceKm, distanceCharge, minutes, minuteCharge, surgeMultiplier, total, surgeAmount } = fareDetails;
+
+  rideFareNum = total;
+  rideFare = formatCurrency(total);
+  updateFareBreakdown({ startRate, distanceKm, distanceCharge, minutes, minuteCharge, surgeMultiplier, surgeAmount, total });
+
+  document.querySelectorAll('.ride-card').forEach(card => {
+    const label = card.querySelector('p.font-bold.text-sm')?.textContent?.trim();
+    const priceEl = card.querySelector('.text-xs.font-bold');
+    const cardConfig = findVehicleCategoryConfig(label);
+    const cardFare = computeFareForCategory(cardConfig, route);
+    if (priceEl && cardFare) {
+      priceEl.textContent = formatCurrency(cardFare.total);
+    }
+  });
+}
+
 // ============ COUPON ============
 async function applyCoupon() {
   const code = document.getElementById('coupon-input').value.trim().toUpperCase();
@@ -959,29 +1105,30 @@ async function loadSettings() {
       data.forEach(r => { allSettings[r.key] = r.value; });
     }
   } catch (e) {}
-  applySettingsToFares();
+  await loadPricingConfig();
+  await applySettingsToFares();
 }
 
-function applySettingsToFares() {
+async function applySettingsToFares() {
   const baseFare = parseFloat(allSettings.base_fare);
+  if (pricingConfig.categories.length) {
+    document.querySelectorAll('.ride-card').forEach(card => {
+      const label = card.querySelector('p.font-bold.text-sm')?.textContent?.trim();
+      const config = findVehicleCategoryConfig(label);
+      const priceEl = card.querySelector('.text-xs.font-bold');
+      const cardFare = computeFareForCategory(config);
+      if (priceEl && cardFare) {
+        priceEl.textContent = formatCurrency(cardFare.total);
+      }
+    });
+    await recalculateRideFare();
+    return;
+  }
+
   if (!Number.isFinite(baseFare)) return;
-
   rideFareNum = baseFare;
-  rideFare = '$' + baseFare.toFixed(2);
-
-  document.querySelectorAll('.ride-card').forEach(card => {
-    const priceEl = card.querySelector('.text-xs.font-bold');
-    if (priceEl) priceEl.textContent = rideFare;
-  });
-
-  const totalFareEl = document.getElementById('total-fare');
-  if (totalFareEl) totalFareEl.textContent = rideFare;
-
-  const mapFareEl = document.getElementById('map-fare');
-  if (mapFareEl) mapFareEl.textContent = rideFare;
-
-  const confirmFareEl = document.getElementById('confirm-fare');
-  if (confirmFareEl) confirmFareEl.textContent = rideFare;
+  rideFare = formatCurrency(baseFare);
+  updateFareBreakdown({ total: baseFare });
 }
 
 // ============ TABS ============
@@ -1042,8 +1189,7 @@ function selectRide(btn, type, fare) {
   rideFareNum = parseFloat(fare.replace('$',''));
   appliedCoupon = null;
   document.getElementById('coupon-msg')?.classList.add('hidden');
-  document.getElementById('map-fare').textContent = fare;
-  document.getElementById('total-fare').textContent = fare;
+  recalculateRideFare();
 }
 
 function selectPay(btn, method) {
@@ -1166,13 +1312,12 @@ function resetBooking() {
   trackRoute = [];
   stopTrackMotion();
   rideType = 'Standard'; rideFare = '$24.50'; rideFareNum = 24.50;
-  document.getElementById('map-fare').textContent = '$24.50';
-  document.getElementById('total-fare').textContent = '$24.50';
   document.querySelectorAll('.ride-card').forEach((b,i) => {
     b.classList.remove('sel'); b.classList.add('border-slate-200','bg-white');
     if(i===0){ b.classList.add('sel'); b.classList.remove('border-slate-200','bg-white'); }
   });
   cardElement = null; // force remount next time
+  applySettingsToFares();
   goStep(1);
   if (bookMap) updateBookMapPins();
 }
@@ -1219,7 +1364,7 @@ async function trackRide() {
     return;
   }
 
-  renderTrackResult(booking, stored);
+  await renderTrackResult(booking, stored);
   activeTrackBookingId = booking.id;
   activeTrackDriverId = booking.driver_id || null;
   startTrackRealtime(booking.id, activeTrackDriverId);
@@ -1235,19 +1380,14 @@ async function trackRide() {
   }
 }
 
-function renderTrackResult(booking, stored) {
+async function renderTrackResult(booking, stored) {
   const pickup = booking.pickup_address || stored?.pickup || '—';
   const dropoff = booking.destination_address || stored?.dropoff || '—';
-  const driverName = booking.driver_name || 'Awaiting assignment';
-  const driverVehicle = booking.driver_vehicle || '';
+  const driverBundle = booking.driver_id ? await fetchDriverById(booking.driver_id) : null;
 
   document.getElementById('tr-code').textContent = 'SR-' + booking.id.slice(0,8).toUpperCase();
   document.getElementById('tr-route').textContent = `${pickup.split(',')[0]} → ${dropoff.split(',')[0]}`;
-  document.getElementById('tr-driver').textContent = driverName;
-  document.getElementById('tr-vehicle').textContent = driverVehicle || 'Vehicle TBC';
-  const initials = driverName.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-  document.getElementById('tr-avatar').textContent = initials || '?';
-
+  applyTrackingDriverState(booking, driverBundle);
   updateTrackStatus(booking.status, booking);
   document.getElementById('track-result').classList.remove('hidden');
 }
@@ -1273,19 +1413,101 @@ function parseCoords(value) {
   return null;
 }
 
+function formatRelativeTrackTime(value) {
+  if (!value) return 'Waiting for booking details';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Waiting for booking details';
+  const diffMinutes = Math.max(0, Math.round((Date.now() - date.getTime()) / 60000));
+  if (diffMinutes < 1) return 'Just now';
+  if (diffMinutes === 1) return '1 min ago';
+  if (diffMinutes < 60) return `${diffMinutes} min ago`;
+  const diffHours = Math.round(diffMinutes / 60);
+  if (diffHours === 1) return '1 hour ago';
+  if (diffHours < 24) return `${diffHours} hours ago`;
+  return date.toLocaleString();
+}
+
+function getResolvedDriverName(driverBundle, booking) {
+  const driver = driverBundle?.driver;
+  const profile = driverBundle?.profile;
+  const firstName = profile?.first_name || driver?.first_name;
+  const lastName = profile?.last_name || driver?.last_name;
+  const fullName = [firstName, lastName].filter(Boolean).join(' ').trim();
+  return fullName || driver?.full_name || driver?.name || booking?.driver_name || '';
+}
+
+function getResolvedDriverVehicle(driverBundle, booking) {
+  const driver = driverBundle?.driver;
+  const profile = driverBundle?.profile;
+  return profile?.vehicle_model
+    || driver?.vehicle_model
+    || [driver?.vehicle_make, driver?.vehicle_model].filter(Boolean).join(' ').trim()
+    || driver?.car_model
+    || driver?.driver_vehicle
+    || booking?.driver_vehicle
+    || '';
+}
+
+function applyTrackingDriverState(booking, driverBundle = null) {
+  const driverNameEl = document.getElementById('tr-driver');
+  const driverVehicleEl = document.getElementById('tr-vehicle');
+  const avatarEl = document.getElementById('tr-avatar');
+  const tl2subEl = document.getElementById('tl2sub');
+  const hasAssignedDriver = Boolean(booking?.driver_id);
+  const driverName = hasAssignedDriver ? getResolvedDriverName(driverBundle, booking) : '';
+  const vehicleModel = hasAssignedDriver ? getResolvedDriverVehicle(driverBundle, booking) : '';
+
+  document.getElementById('tl1sub').textContent = formatRelativeTrackTime(booking?.created_at || booking?.pickup_date);
+
+  if (!hasAssignedDriver || !driverName) {
+    if (driverNameEl) driverNameEl.textContent = 'Finding your driver...';
+    if (driverVehicleEl) {
+      driverVehicleEl.textContent = '';
+      driverVehicleEl.classList.add('hidden');
+    }
+    if (avatarEl) avatarEl.textContent = '...';
+    if (tl2subEl) tl2subEl.textContent = 'Finding your driver...';
+    return;
+  }
+
+  if (driverNameEl) driverNameEl.textContent = driverName;
+  if (driverVehicleEl) {
+    driverVehicleEl.textContent = vehicleModel || 'Vehicle details pending';
+    driverVehicleEl.classList.remove('hidden');
+  }
+  if (avatarEl) {
+    const initials = driverName.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    avatarEl.textContent = initials || '?';
+  }
+  if (tl2subEl) tl2subEl.textContent = vehicleModel ? `${driverName} · ${vehicleModel}` : driverName;
+}
+
 async function fetchDriverById(driverId) {
   if (!driverId) return null;
   try {
-    const { data, error } = await db.from('drivers').select('*').eq('id', driverId).single();
-    if (!error) return data;
+    const { data: driver, error } = await db.from('drivers').select('*').eq('id', driverId).single();
+    if (!error && driver) {
+      let profile = null;
+      const profileLookupId = driver.profile_id || driver.user_id || driver.id;
+      try {
+        const { data: profileData, error: profileError } = await db.from('profiles').select('*').eq('id', profileLookupId).single();
+        if (!profileError) profile = profileData;
+      } catch (profileLookupError) {}
+      return { driver, profile };
+    }
+  } catch (error) {}
+  try {
+    const { data: profile, error } = await db.from('profiles').select('*').eq('id', driverId).single();
+    if (!error && profile) return { driver: null, profile };
   } catch (error) {}
   return null;
 }
 
 function updateTrackedDriverMarker(driver) {
   if (!trackMap || !trackMapLoaded) return;
-  const coords = parseCoords(driver?.coords);
-  const isVisible = Boolean(driver?.status === 'Active') && coords;
+  const driverRecord = driver?.driver || driver?.profile || driver;
+  const coords = parseCoords(driverRecord?.coords);
+  const isVisible = Boolean(driverRecord?.status === 'Active') && coords;
   if (!isVisible) {
     if (trackDriverMarker) {
       trackDriverMarker.remove();
@@ -1305,6 +1527,7 @@ function updateTrackedDriverMarker(driver) {
 function stopTrackRealtime() {
   if (trackBookingChannel) { db.removeChannel(trackBookingChannel); trackBookingChannel = null; }
   if (trackDriverChannel) { db.removeChannel(trackDriverChannel); trackDriverChannel = null; }
+  if (trackProfileChannel) { db.removeChannel(trackProfileChannel); trackProfileChannel = null; }
 }
 
 async function startTrackRealtime(bookingId, driverId) {
@@ -1316,15 +1539,17 @@ async function startTrackRealtime(bookingId, driverId) {
         if (!booking) return;
         const previousDriverId = activeTrackDriverId;
         activeTrackDriverId = booking.driver_id || null;
-        renderTrackResult(booking, getBookingFromCode(document.getElementById('track-code').value.trim().toUpperCase()));
+        await renderTrackResult(booking, getBookingFromCode(document.getElementById('track-code').value.trim().toUpperCase()));
         if (activeTrackDriverId && (!trackDriverChannel || previousDriverId !== activeTrackDriverId)) {
           await startTrackRealtime(bookingId, activeTrackDriverId);
           return;
         }
         if (activeTrackDriverId) {
           const driver = await fetchDriverById(activeTrackDriverId);
+          applyTrackingDriverState(booking, driver);
           updateTrackedDriverMarker(driver);
         } else {
+          applyTrackingDriverState(booking, null);
           updateTrackedDriverMarker(null);
         }
       })
@@ -1334,10 +1559,25 @@ async function startTrackRealtime(bookingId, driverId) {
   if (driverId) {
     trackDriverChannel = db.channel(`track-driver-${driverId}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'drivers', filter: `id=eq.${driverId}` }, async (payload) => {
-        updateTrackedDriverMarker(payload.new || null);
+        const booking = activeTrackBookingId ? await fetchBookingById(activeTrackBookingId) : null;
+        const driverBundle = await fetchDriverById(driverId);
+        if (booking) applyTrackingDriverState(booking, driverBundle);
+        updateTrackedDriverMarker(driverBundle || payload.new || null);
       })
       .subscribe();
     const driver = await fetchDriverById(driverId);
+    const profileId = driver?.driver?.profile_id || driver?.driver?.user_id || driver?.profile?.id || null;
+    if (profileId) {
+      trackProfileChannel = db.channel(`track-profile-${profileId}`)
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles', filter: `id=eq.${profileId}` }, async () => {
+          const booking = activeTrackBookingId ? await fetchBookingById(activeTrackBookingId) : null;
+          const refreshedDriver = await fetchDriverById(driverId);
+          if (booking) applyTrackingDriverState(booking, refreshedDriver);
+        })
+        .subscribe();
+    }
+    const booking = activeTrackBookingId ? await fetchBookingById(activeTrackBookingId) : null;
+    if (booking) applyTrackingDriverState(booking, driver);
     updateTrackedDriverMarker(driver);
   }
 }
@@ -1374,14 +1614,6 @@ function updateTrackStatus(status, booking) {
     document.getElementById('tl4dot').className = 'w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shrink-0';
     document.getElementById('tl4dot').innerHTML = '<span class="material-symbols-outlined fill-icon text-white" style="font-size:16px">check</span>';
     document.getElementById('tl4title').className = 'font-bold text-sm text-slate-800';
-  }
-
-  // If driver was assigned, update the card
-  if (booking?.driver_name) {
-    const card = document.getElementById('tr-driver');
-    if (card) card.textContent = booking.driver_name;
-    const veh = document.getElementById('tr-vehicle');
-    if (veh) veh.textContent = booking.driver_vehicle || 'Vehicle TBC';
   }
 
   if (trackRoute.length) syncTrackingVisualization(status, trackRoute);

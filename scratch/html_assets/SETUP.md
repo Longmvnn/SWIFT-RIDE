@@ -31,6 +31,7 @@ Go to https://supabase.com/dashboard → your project → SQL Editor, then run:
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS driver_name TEXT;
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS driver_vehicle TEXT;
 ALTER TABLE bookings ADD COLUMN IF NOT EXISTS payment_intent_id TEXT;
+ALTER TABLE bookings ADD COLUMN IF NOT EXISTS cancellation_reason TEXT;
 
 -- Allow payments to store Stripe payment intent ID
 ALTER TABLE payments ADD COLUMN IF NOT EXISTS payment_intent_id TEXT;

@@ -266,6 +266,43 @@ input, select, textarea { font-family: 'Space Grotesk', sans-serif; }
 #toast.error { color: var(--red); border-color: var(--red); }
 #toast.info { color: var(--accent); border-color: var(--accent); }
 
+/* Cancel modal */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(3,7,18,.72); backdrop-filter: blur(8px);
+  display: none; align-items: center; justify-content: center; z-index: 9997; padding: 20px;
+}
+.modal-card {
+  width: 100%; max-width: 480px; background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 18px; box-shadow: 0 28px 80px rgba(0,0,0,.5); overflow: hidden;
+}
+.modal-head {
+  padding: 18px 20px 12px; border-bottom: 1px solid var(--border);
+}
+.modal-title { font-size: 1rem; font-weight: 700; }
+.modal-sub { font-size: .78rem; color: var(--text2); margin-top: 4px; }
+.modal-body { padding: 18px 20px; }
+.reason-grid { display: grid; gap: 10px; }
+.reason-option {
+  display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px;
+  border: 1px solid var(--border2); background: var(--surface2); cursor: pointer; transition: border-color .15s, background .15s;
+}
+.reason-option:hover { border-color: var(--accent); }
+.reason-option input { accent-color: var(--accent); }
+.reason-text { font-size: .84rem; font-weight: 600; }
+.modal-actions {
+  display: flex; gap: 10px; padding: 0 20px 20px;
+}
+.btn-secondary {
+  flex: 1; padding: 11px 14px; background: var(--surface2); color: var(--text2); border: 1px solid var(--border2);
+  border-radius: 10px; font-weight: 700; cursor: pointer; font-family: 'Space Grotesk', sans-serif;
+}
+.btn-danger {
+  flex: 1; padding: 11px 14px; background: var(--red-bg); color: var(--red); border: 1px solid var(--red);
+  border-radius: 10px; font-weight: 700; cursor: pointer; font-family: 'Space Grotesk', sans-serif;
+}
+.btn-danger:disabled { opacity: .6; cursor: not-allowed; }
+.reason-other-wrap { margin-top: 12px; display: none; }
+
 /* Mobile nav */
 @media (max-width: 640px) {
   #sidebar { position: fixed; bottom: 0; left: 0; right: 0; width: 100% !important; height: 60px; flex-direction: row; padding: 0 8px; top: auto; border-right: none; border-top: 1px solid var(--border); justify-content: space-around; z-index: 200; }
@@ -464,6 +501,31 @@ input, select, textarea { font-family: 'Space Grotesk', sans-serif; }
 
 </div>
 
+<div id="cancel-modal" class="modal-backdrop" onclick="if(event.target===this)closeCancelModal()">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="modal-title">Cancel Ride</div>
+      <div class="modal-sub">Tell dispatch why this ride could not continue. This will be visible in Admin ride history.</div>
+    </div>
+    <div class="modal-body">
+      <div class="reason-grid">
+        <label class="reason-option"><input type="radio" name="cancel-reason" value="Vehicle Issue" onchange="handleCancelReasonChange()"/><span class="reason-text">Vehicle Issue</span></label>
+        <label class="reason-option"><input type="radio" name="cancel-reason" value="Passenger No-Show" onchange="handleCancelReasonChange()"/><span class="reason-text">Passenger No-Show</span></label>
+        <label class="reason-option"><input type="radio" name="cancel-reason" value="Traffic/Delay" onchange="handleCancelReasonChange()"/><span class="reason-text">Traffic/Delay</span></label>
+        <label class="reason-option"><input type="radio" name="cancel-reason" value="Other" onchange="handleCancelReasonChange()"/><span class="reason-text">Other</span></label>
+      </div>
+      <div id="reason-other-wrap" class="reason-other-wrap">
+        <label class="field-label">Custom Reason</label>
+        <input id="cancel-reason-other" class="field-input" type="text" placeholder="Describe the cancellation reason"/>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeCancelModal()">Keep Ride</button>
+      <button id="cancel-submit-btn" class="btn-danger" onclick="submitRideCancellation()">Submit Cancellation</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -494,6 +556,7 @@ let driverProfile = null;
 let driverMarker = null;
 let driverCoords = null;
 let driverLocationWatchId = null;
+let cancelRideTargetId = null;
 
 function normalizeDriverIdentity(value) {
   return String(value || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -816,6 +879,65 @@ async function completeRide() {
   loadJobsFromSupabase();
 }
 
+function openCancelModal() {
+  if (!activeRide) return;
+  cancelRideTargetId = activeRide.id;
+  document.querySelectorAll('input[name="cancel-reason"]').forEach(input => { input.checked = false; });
+  const otherWrap = document.getElementById('reason-other-wrap');
+  const otherInput = document.getElementById('cancel-reason-other');
+  if (otherWrap) otherWrap.style.display = 'none';
+  if (otherInput) otherInput.value = '';
+  document.getElementById('cancel-submit-btn').disabled = false;
+  document.getElementById('cancel-modal').style.display = 'flex';
+}
+
+function closeCancelModal() {
+  cancelRideTargetId = null;
+  document.getElementById('cancel-modal').style.display = 'none';
+}
+
+function handleCancelReasonChange() {
+  const selected = document.querySelector('input[name="cancel-reason"]:checked')?.value;
+  const otherWrap = document.getElementById('reason-other-wrap');
+  if (otherWrap) otherWrap.style.display = selected === 'Other' ? 'block' : 'none';
+}
+
+async function submitRideCancellation() {
+  const selected = document.querySelector('input[name="cancel-reason"]:checked')?.value;
+  const otherReason = document.getElementById('cancel-reason-other').value.trim();
+  const reason = selected === 'Other' ? otherReason : selected;
+  if (!cancelRideTargetId || !reason) {
+    toast('Select a cancellation reason first.', 'error');
+    return;
+  }
+
+  const submitBtn = document.getElementById('cancel-submit-btn');
+  submitBtn.disabled = true;
+
+  const payload = {
+    status: 'cancelled',
+    cancellation_reason: reason
+  };
+
+  const { error } = await db
+    .from('bookings')
+    .update(payload)
+    .eq('id', cancelRideTargetId);
+
+  if (error) {
+    submitBtn.disabled = false;
+    toast('Could not cancel ride: ' + error.message, 'error');
+    return;
+  }
+
+  toast('Ride cancelled and reason saved.', 'success');
+  activeRide = null;
+  closeCancelModal();
+  showActiveRide();
+  setView('jobs');
+  loadJobsFromSupabase();
+}
+
 // =================== UI RENDERING ===================
 function renderJobsList(jobs) {
   const listEl = document.getElementById('jobs-list');
@@ -852,10 +974,13 @@ function showActiveRide() {
     <div class="card" style="border-color:var(--amber)">
       <div style="font-weight:700">${activeRide.patient_name}</div>
       <div style="font-size:.8rem;margin:10px 0">
-        From: ${activeRide.pickup_location}<br>
-        To: ${activeRide.destination_location}
+        From: ${activeRide.pickup_address || activeRide.pickup_location || '—'}<br>
+        To: ${activeRide.destination_address || activeRide.destination_location || '—'}
       </div>
-      <button class="btn-complete" onclick="completeRide()">Mark as Complete</button>
+      <div class="job-actions">
+        <button class="btn-complete" onclick="completeRide()">Mark as Complete</button>
+        <button class="btn-decline" onclick="openCancelModal()">Cancel Ride</button>
+      </div>
     </div>
   `;
 }

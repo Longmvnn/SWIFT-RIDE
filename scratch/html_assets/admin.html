@@ -145,7 +145,7 @@ tr.clickable:hover{background:#f8fafc;cursor:pointer}
 <div id="modal-vehicle" class="modal-bg" style="display:none">
   <div class="modal-box" style="max-width:500px">
     <div class="flex justify-between items-center mb-5">
-      <h3 class="font-syne font-extrabold text-xl">Add Vehicle</h3>
+      <h3 id="vehicle-modal-title" class="font-syne font-extrabold text-xl">Add Vehicle</h3>
       <button onclick="closeModal('modal-vehicle')" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center hover:bg-slate-200 transition"><span class="material-symbols-outlined" style="font-size:18px">close</span></button>
     </div>
     <div id="vehicle-err" style="display:none;background:#fef2f2;border:1px solid #fecaca;border-radius:10px;padding:10px 14px;font-size:.8rem;color:#dc2626;margin-bottom:14px"></div>
@@ -184,7 +184,7 @@ tr.clickable:hover{background:#f8fafc;cursor:pointer}
       </div>
     </div>
     <button id="veh-btn" onclick="saveVehicle()" style="width:100%;background:#1a40c2;color:white;border:none;border-radius:10px;padding:12px;font-weight:700;font-size:.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
-      <span class="material-symbols-outlined" style="font-size:18px">add_circle</span>
+      <span id="veh-btn-icon" class="material-symbols-outlined" style="font-size:18px">add_circle</span>
       <span id="veh-btn-text">Add Vehicle to Fleet</span>
     </button>
   </div>
@@ -216,10 +216,10 @@ tr.clickable:hover{background:#f8fafc;cursor:pointer}
     <!-- Nav -->
     <nav style="flex:1;padding-top:10px">
       <div class="sl on" id="sl-overview" onclick="setView('overview')"><span class="material-symbols-outlined" style="font-size:18px">dashboard</span>Dashboard</div>
-      <div class="sl" id="sl-rides" onclick="setView('rides')"><span class="material-symbols-outlined" style="font-size:18px">route</span>Active Rides</div>
+      <div class="sl" id="sl-rides" onclick="setView('rides')"><span class="material-symbols-outlined" style="font-size:18px">route</span>Rides History</div>
       <div class="sl" id="sl-drivers" onclick="setView('drivers')"><span class="material-symbols-outlined" style="font-size:18px">group</span>Driver Network</div>
       <div class="sl" id="sl-fleet" onclick="setView('fleet')"><span class="material-symbols-outlined" style="font-size:18px">directions_car</span>Vehicle Fleet</div>
-      <div class="sl" id="sl-map" onclick="setView('map')"><span class="material-symbols-outlined" style="font-size:18px">map</span>Live Map</div>
+      <div class="sl" id="sl-map" onclick="setView('map')"><span class="material-symbols-outlined" style="font-size:18px">map</span>Dispatch</div>
       <div class="sl" id="sl-financials" onclick="setView('financials')"><span class="material-symbols-outlined" style="font-size:18px">payments</span>Financials</div>
       <div class="sl" id="sl-analytics" onclick="setView('analytics')"><span class="material-symbols-outlined" style="font-size:18px">bar_chart</span>Analytics</div>
       <div class="sl" id="sl-support" onclick="setView('support')"><span class="material-symbols-outlined" style="font-size:18px">contact_support</span>Support</div>
@@ -345,19 +345,29 @@ tr.clickable:hover{background:#f8fafc;cursor:pointer}
       </div>
     </div>
 
-    <!-- ===== ACTIVE RIDES ===== -->
+    <!-- ===== RIDES HISTORY ===== -->
     <div id="view-rides" class="view" style="padding:24px">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
         <div>
-          <h2 style="font-family:Syne,sans-serif;font-weight:800;font-size:1.4rem">Active Rides</h2>
-          <p style="font-size:.8rem;color:#64748b">Live from bookings table</p>
+          <h2 style="font-family:Syne,sans-serif;font-weight:800;font-size:1.4rem">Rides History</h2>
+          <p style="font-size:.8rem;color:#64748b">Filter and review all ride outcomes from the bookings table.</p>
         </div>
-        <div style="display:flex;gap:10px;align-items:center">
-          <select id="rides-filter" onchange="renderBookingsTable()" style="background:white;border:1px solid #e2e8f0;border-radius:10px;padding:8px 12px;font-size:.8rem;outline:none">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+          <div style="display:flex;align-items:center;gap:8px;background:white;border:1px solid #e2e8f0;border-radius:12px;padding:8px 12px;min-width:260px">
+            <span class="material-symbols-outlined" style="font-size:16px;color:#94a3b8">search</span>
+            <input id="rides-search" type="text" placeholder="Search by ride no, ride ID, name, or email" oninput="renderBookingsTable()" style="border:none;outline:none;font-size:.8rem;color:#0f172a;background:transparent;width:100%"/>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;background:white;border:1px solid #e2e8f0;border-radius:12px;padding:8px 10px">
+            <label for="rides-start-date" style="font-size:.68rem;font-family:Inter,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8">Start</label>
+            <input id="rides-start-date" type="date" onchange="renderBookingsTable()" style="border:none;outline:none;font-size:.8rem;color:#0f172a;background:transparent"/>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;background:white;border:1px solid #e2e8f0;border-radius:12px;padding:8px 10px">
+            <label for="rides-end-date" style="font-size:.68rem;font-family:Inter,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8">End</label>
+            <input id="rides-end-date" type="date" onchange="renderBookingsTable()" style="border:none;outline:none;font-size:.8rem;color:#0f172a;background:transparent"/>
+          </div>
+          <select id="rides-filter" onchange="renderBookingsTable()" style="background:white;border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px;font-size:.8rem;outline:none;color:#0f172a">
             <option value="">All Statuses</option>
             <option value="pending">Pending</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="in_progress">In Progress</option>
             <option value="completed">Completed</option>
             <option value="cancelled">Cancelled</option>
           </select>
@@ -412,23 +422,60 @@ tr.clickable:hover{background:#f8fafc;cursor:pointer}
     <div id="view-map" class="view" style="padding:24px;height:calc(100vh - 0px)">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
         <div>
-          <h2 style="font-family:Syne,sans-serif;font-weight:800;font-size:1.4rem">Live Map — Seattle</h2>
-          <p style="font-size:.8rem;color:#64748b">Driver & booking locations · OpenStreetMap</p>
+          <h2 style="font-family:Syne,sans-serif;font-weight:800;font-size:1.4rem">DISPATCH</h2>
+          <p style="font-size:.8rem;color:#64748b">Dispatch line map</p>
         </div>
-        <button onclick="refreshMap()" style="background:white;border:1px solid #e2e8f0;border-radius:10px;padding:8px 14px;font-size:.8rem;font-weight:600;cursor:pointer;color:#64748b;display:flex;align-items:center;gap:6px">
-          <span class="material-symbols-outlined" style="font-size:16px">refresh</span>Refresh Pins
-        </button>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span id="dispatch-selection-pill" style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:999px;padding:8px 12px;font-size:.75rem;font-weight:700">No ride selected</span>
+          <button onclick="refreshMap()" style="background:white;border:1px solid #e2e8f0;border-radius:10px;padding:8px 14px;font-size:.8rem;font-weight:600;cursor:pointer;color:#64748b;display:flex;align-items:center;gap:6px">
+            <span class="material-symbols-outlined" style="font-size:16px">refresh</span>Refresh Map
+          </button>
+        </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 280px;gap:16px;height:calc(100vh - 160px)">
-        <div id="map" style="border-radius:16px;border:1px solid #e2e8f0;overflow:hidden"></div>
-        <div style="background:white;border-radius:16px;border:1px solid #e2e8f0;padding:16px;overflow-y:auto">
-          <h4 style="font-family:Syne,sans-serif;font-weight:700;margin-bottom:12px">Active on Map</h4>
-          <div id="map-legend" style="space-y:8px"></div>
-          <div style="margin-top:16px;padding-top:16px;border-top:1px solid #f1f5f9">
-            <p style="font-size:.7rem;font-family:Inter,sans-serif;color:#94a3b8;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Map Legend</p>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:.8rem"><span style="width:10px;height:10px;border-radius:50%;background:#1a40c2;display:inline-block"></span>Available Driver</div>
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:.8rem"><span style="width:10px;height:10px;border-radius:50%;background:#ef4444;display:inline-block"></span>Unavailable Driver</div>
-            <div style="display:flex;align-items:center;gap:8px;font-size:.8rem"><span style="width:10px;height:10px;border-radius:50%;background:#f59e0b;display:inline-block"></span>Active Booking</div>
+      <div style="display:grid;grid-template-columns:260px minmax(0,1fr);gap:14px;height:calc(100vh - 160px)">
+        <div style="background:white;border-radius:18px;border:1px solid #dbe3ef;overflow:hidden;display:flex;flex-direction:column;min-height:0">
+          <div style="padding:14px 14px 12px;border-bottom:1px solid #eef2f7">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+              <div>
+                <p style="font-size:.68rem;font-family:Inter,sans-serif;text-transform:uppercase;letter-spacing:.12em;color:#94a3b8">Order</p>
+                <h4 style="font-family:Syne,sans-serif;font-weight:800;font-size:1rem;color:#0f172a;margin-top:4px">Pending Rides</h4>
+              </div>
+              <span id="dispatch-pending-count" style="background:#eff6ff;color:#1d4ed8;border-radius:999px;padding:8px 12px;font-size:.72rem;font-weight:700">0 rides</span>
+            </div>
+            <div id="dispatch-stats" style="display:grid;grid-template-columns:1fr;gap:8px">
+              <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px">
+                <p style="font-size:.66rem;font-family:Inter,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8">Pending</p>
+                <p id="dispatch-pending-kpi" style="font-family:Syne,sans-serif;font-size:1.1rem;font-weight:800;color:#0f172a;margin-top:4px">0</p>
+              </div>
+              <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:10px 12px">
+                <p style="font-size:.66rem;font-family:Inter,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8">In Progress</p>
+                <p id="dispatch-progress-kpi" style="font-family:Syne,sans-serif;font-size:1.1rem;font-weight:800;color:#0f172a;margin-top:4px">0</p>
+              </div>
+            </div>
+          </div>
+          <div id="dispatch-rides-list" style="padding:12px;overflow-y:auto;display:grid;gap:8px">
+            <p style="padding:18px;border:1px dashed #cbd5e1;border-radius:16px;background:#f8fafc;color:#94a3b8;font-size:.82rem;text-align:center">No rides waiting for dispatch.</p>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-rows:minmax(0,1fr) 86px;gap:12px;min-height:0">
+          <div style="position:relative;border-radius:18px;overflow:hidden;border:1px solid #dbe3ef;min-height:0;background:#f8fafc">
+            <div id="map" style="width:100%;height:100%"></div>
+            <div style="position:absolute;top:16px;left:16px;z-index:10;display:flex;gap:10px;flex-wrap:wrap;pointer-events:none">
+              <span style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border:1px solid #dbe3ef;border-radius:999px;padding:8px 12px;font-size:.74rem;font-weight:700;color:#0f172a"><span style="width:10px;height:10px;border-radius:50%;background:#2563eb;display:inline-block"></span>Online</span>
+              <span style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border:1px solid #dbe3ef;border-radius:999px;padding:8px 12px;font-size:.74rem;font-weight:700;color:#0f172a"><span style="width:10px;height:10px;border-radius:50%;background:#ef4444;display:inline-block"></span>Busy</span>
+              <span style="display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.92);backdrop-filter:blur(12px);border:1px solid #dbe3ef;border-radius:999px;padding:8px 12px;font-size:.74rem;font-weight:700;color:#0f172a"><span style="width:10px;height:10px;border-radius:50%;background:#94a3b8;display:inline-block"></span>Offline</span>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr;gap:12px">
+            <div style="background:white;border-radius:18px;border:1px solid #e2e8f0;padding:12px 14px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                <div>
+                  <p style="font-size:.72rem;font-family:Inter,sans-serif;text-transform:uppercase;letter-spacing:.1em;color:#94a3b8">Live Map Intelligence</p>
+                </div>
+                <span id="dispatch-nearby-pill" style="background:#f8fafc;color:#64748b;border:1px solid #e2e8f0;border-radius:999px;padding:7px 11px;font-size:.7rem;font-weight:700">0 nearby drivers</span>
+              </div>
+              <div id="map-legend" style="display:grid;gap:10px"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -561,12 +608,51 @@ tr.clickable:hover{background:#f8fafc;cursor:pointer}
             <input id="set-price-km" type="number" step="0.01" min="0" placeholder="1.85" style="width:100%;background:#f8fafc;border:2px solid transparent;border-radius:10px;padding:10px 14px;font-size:.875rem;outline:none" onfocus="this.style.borderColor='#1a40c2'" onblur="this.style.borderColor='transparent'"/>
           </div>
         </div>
+        <div style="border-top:1px solid #e2e8f0;padding-top:16px;margin-top:6px;margin-bottom:14px">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px">
+            <div>
+              <p style="font-size:.9rem;font-weight:700;color:#0f172a">Ride Category Pricing</p>
+              <p style="font-size:.76rem;color:#64748b;margin-top:2px">Edit start, distance, and minute rates for each car option shown in the booking flow.</p>
+            </div>
+          </div>
+          <div id="vehicle-category-settings" style="display:grid;gap:12px">
+            <p style="padding:14px;border:1px dashed #cbd5e1;border-radius:12px;background:#f8fafc;color:#94a3b8;font-size:.8rem">Loading ride categories...</p>
+          </div>
+        </div>
         <div style="margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;background:#f8fafc;border-radius:12px;padding:12px 14px">
           <div>
             <p style="font-size:.78rem;font-weight:700;color:#0f172a">Enable Auto-Dispatch</p>
             <p style="font-size:.72rem;color:#64748b;margin-top:2px">When off, new rides stay pending until an admin assigns a driver.</p>
           </div>
           <input id="set-auto-dispatch" type="checkbox" style="width:18px;height:18px;accent-color:#1a40c2"/>
+        </div>
+        <div style="margin-bottom:16px;border:1px solid #e2e8f0;border-radius:16px;padding:16px;background:linear-gradient(180deg,#ffffff 0%,#f8fafc 100%)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <div>
+              <p style="font-size:.74rem;font-family:Inter,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8">Dispatch Rules</p>
+              <h5 style="font-family:Syne,sans-serif;font-weight:700;font-size:1rem;color:#0f172a;margin-top:4px">Auto-Dispatch Logic</h5>
+            </div>
+            <span style="background:#eff6ff;color:#1d4ed8;border-radius:999px;padding:8px 12px;font-size:.7rem;font-weight:700">Dispatch Brain</span>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px">
+            <div>
+              <label style="display:block;font-size:.68rem;font-family:Inter,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:6px">Max Search Radius (km)</label>
+              <input id="set-dispatch-radius" type="number" step="0.5" min="1" placeholder="3" style="width:100%;background:white;border:2px solid transparent;border-radius:10px;padding:10px 14px;font-size:.84rem;outline:none" onfocus="this.style.borderColor='#1a40c2'" onblur="this.style.borderColor='transparent'"/>
+            </div>
+            <div>
+              <label style="display:block;font-size:.68rem;font-family:Inter,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:6px">Response Timeout (min)</label>
+              <input id="set-dispatch-timeout" type="number" step="1" min="1" placeholder="5" style="width:100%;background:white;border:2px solid transparent;border-radius:10px;padding:10px 14px;font-size:.84rem;outline:none" onfocus="this.style.borderColor='#1a40c2'" onblur="this.style.borderColor='transparent'"/>
+            </div>
+            <div>
+              <label style="display:block;font-size:.68rem;font-family:Inter,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:6px">Vehicle Match</label>
+              <select id="set-dispatch-vmatch" style="width:100%;background:white;border:2px solid transparent;border-radius:10px;padding:10px 14px;font-size:.84rem;outline:none" onfocus="this.style.borderColor='#1a40c2'" onblur="this.style.borderColor='transparent'">
+                <option value="strict">Strict match only</option>
+                <option value="preferred">Prefer match</option>
+                <option value="off">Disabled</option>
+              </select>
+            </div>
+          </div>
+          <p style="font-size:.74rem;color:#64748b">Use these rules to control how far the system searches, how long drivers can respond, and whether ride categories must match driver vehicle types.</p>
         </div>
         <div style="margin-bottom:18px">
           <label style="display:block;font-size:.7rem;font-family:Inter,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:6px">App Mode</label>
@@ -621,10 +707,22 @@ mapboxgl.accessToken = MAPBOX_ACCESS_TOKEN;
 // ============ STATE ============
 let allBookings = [], allDrivers = [], allPayments = [], allCoupons = [], allVehicles = [];
 let allSettings = {};
+let allVehicleCategories = [];
+let editingVehicleId = null;
 let mapInstance = null, mapInitialized = false, mapMarkers = [];
+let mapDriverMarkers = [];
+let selectedDispatchRideId = null;
+let selectedRideCoords = null;
 let trackInterval = null, trackingMarker = null, trackStep = 0;
 let realtimeInitialized = false;
 const geocodeCache = new Map();
+const DEFAULT_VEHICLE_CATEGORIES = [
+  { label: 'Standard', key: 'standard', description: 'Everyday sedan rides', start_rate: '', distance_rate: '', minute_rate: '' },
+  { label: 'Premium', key: 'premium', description: 'Executive and black car rides', start_rate: '', distance_rate: '', minute_rate: '' },
+  { label: 'XL', key: 'xl', description: 'Larger rides for groups or luggage', start_rate: '', distance_rate: '', minute_rate: '' },
+  { label: 'Medical', key: 'medical', description: 'Specialized non-emergency trips', start_rate: '', distance_rate: '', minute_rate: '' }
+];
+const DISPATCH_HIGHLIGHT_RADIUS_KM = 5;
 
 function driverDisplayName(driver) {
   return driver?.full_name || driver?.name || 'Driver';
@@ -654,6 +752,66 @@ function parseCoords(value) {
     return Number.isFinite(lng) && Number.isFinite(lat) ? [lng, lat] : null;
   }
   return null;
+}
+
+function formatRideLabel(status) {
+  return String(status || 'pending').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function getRideBadge(status) {
+  const theme = {
+    pending: { bg: '#fff7ed', color: '#c2410c' },
+    confirmed: { bg: '#eff6ff', color: '#1d4ed8' },
+    in_progress: { bg: '#f5f3ff', color: '#7c3aed' },
+    completed: { bg: '#f0fdf4', color: '#15803d' },
+    cancelled: { bg: '#fef2f2', color: '#b91c1c' }
+  }[status] || { bg: '#f8fafc', color: '#64748b' };
+  return `<span style="display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;background:${theme.bg};color:${theme.color};font-size:.68rem;font-weight:700">${formatRideLabel(status)}</span>`;
+}
+
+function getDispatchQueueRides() {
+  return allBookings.filter(b => ['pending', 'confirmed', 'in_progress'].includes(b.status)).sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+}
+
+function getDriverDispatchState(driver) {
+  const assignedBooking = allBookings.find(b => String(b.driver_id || '') === String(driver.id || '') && ['confirmed', 'in_progress'].includes(b.status));
+  if (assignedBooking) return 'busy';
+  return driverIsAvailable(driver) ? 'online' : 'offline';
+}
+
+function getDriverDispatchTheme(driver) {
+  const state = getDriverDispatchState(driver);
+  if (state === 'busy') return { state, color: '#ef4444', glow: 'rgba(239,68,68,.18)', label: 'Busy' };
+  if (state === 'online') return { state, color: '#2563eb', glow: 'rgba(37,99,235,.18)', label: 'Online' };
+  return { state, color: '#94a3b8', glow: 'rgba(148,163,184,.18)', label: 'Offline' };
+}
+
+function toRadians(value) {
+  return value * (Math.PI / 180);
+}
+
+function haversineDistanceKm(a, b) {
+  if (!a || !b) return Infinity;
+  const earthRadiusKm = 6371;
+  const dLat = toRadians(b[1] - a[1]);
+  const dLng = toRadians(b[0] - a[0]);
+  const lat1 = toRadians(a[1]);
+  const lat2 = toRadians(b[1]);
+  const sinLat = Math.sin(dLat / 2);
+  const sinLng = Math.sin(dLng / 2);
+  const calc = sinLat * sinLat + Math.cos(lat1) * Math.cos(lat2) * sinLng * sinLng;
+  return 2 * earthRadiusKm * Math.atan2(Math.sqrt(calc), Math.sqrt(1 - calc));
+}
+
+function vehicleTypesMatch(ride, driver) {
+  const mode = String(allSettings.dispatch_vehicle_match || 'strict');
+  if (mode === 'off') return true;
+  const rideType = normalizeCategoryKey(ride.transport_type || ride.service_type || '');
+  const driverType = normalizeCategoryKey(driver.vehicle_type || driver.type || '');
+  if (!rideType || !driverType) return mode !== 'strict';
+  if (rideType === driverType) return true;
+  if (rideType === 'xl' && driverType === 'xlvan') return true;
+  return mode !== 'strict';
 }
 
 async function geocodeAddressMapbox(query) {
@@ -798,13 +956,28 @@ async function loadSettings() {
       localStorage.setItem('sr_settings', JSON.stringify(allSettings));
     } else { allSettings = lsObjGet('sr_settings'); }
   } catch(e) { allSettings = lsObjGet('sr_settings'); }
+  try {
+    const { data } = await db.from('vehicle_categories').select('*');
+    if (data && data.length >= 0) {
+      allVehicleCategories = mergeVehicleCategories(data);
+      localStorage.setItem('sr_vehicle_categories', JSON.stringify(allVehicleCategories));
+    } else {
+      allVehicleCategories = mergeVehicleCategories(lsGet('sr_vehicle_categories'));
+    }
+  } catch(e) {
+    allVehicleCategories = mergeVehicleCategories(lsGet('sr_vehicle_categories'));
+  }
   if (document.getElementById('set-base-fare')) {
     document.getElementById('set-base-fare').value = allSettings['base_fare'] || '';
     document.getElementById('set-price-km').value = allSettings['price_per_km'] || '';
     document.getElementById('set-auto-dispatch').checked = String(allSettings['auto_dispatch'] ?? 'true') === 'true';
+    document.getElementById('set-dispatch-radius').value = allSettings['dispatch_search_radius_km'] || '3';
+    document.getElementById('set-dispatch-timeout').value = allSettings['dispatch_response_timeout_min'] || '5';
+    document.getElementById('set-dispatch-vmatch').value = allSettings['dispatch_vehicle_match'] || 'strict';
     const modeEl = document.getElementById('set-app-mode');
     if (modeEl && allSettings['app_mode']) modeEl.value = allSettings['app_mode'];
   }
+  renderVehicleCategorySettings();
 }
 async function loadVehicles() {
   try {
@@ -939,30 +1112,44 @@ function renderRecentBookings() {
 
 function renderBookingsTable() {
   const filter = document.getElementById('rides-filter')?.value||'';
-  const rows = filter ? allBookings.filter(b=>b.status===filter) : allBookings;
+  const searchTerm = (document.getElementById('rides-search')?.value || '').trim().toLowerCase();
+  const startDate = document.getElementById('rides-start-date')?.value || '';
+  const endDate = document.getElementById('rides-end-date')?.value || '';
+  const rows = allBookings.filter((b) => {
+    if (filter && b.status !== filter) return false;
+    if (searchTerm && !getBookingSearchText(b).includes(searchTerm)) return false;
+    const bookingDate = getBookingDateValue(b);
+    if (startDate && bookingDate && bookingDate < startDate) return false;
+    if (endDate && bookingDate && bookingDate > endDate) return false;
+    return true;
+  });
   const el = document.getElementById('bookings-table-wrap');
-  const statusColor = {pending:'#f59e0b',confirmed:'#1a40c2',in_progress:'#8b5cf6',completed:'#22c55e',cancelled:'#ef4444'};
-  const statusBg = {pending:'#fef9c3',confirmed:'#eff3ff',in_progress:'#f5f3ff',completed:'#f0fdf4',cancelled:'#fef2f2'};
-  if (!rows.length) { el.innerHTML = '<p style="padding:20px;color:#94a3b8;font-size:.8rem">No bookings found</p>'; return; }
-  el.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:.82rem">
+  if (!rows.length) { el.innerHTML = '<div style="padding:28px;text-align:center;color:#94a3b8;font-size:.82rem">No rides found for the selected filters.</div>'; return; }
+  el.innerHTML = `<table style="width:100%;border-collapse:separate;border-spacing:0;font-size:.82rem">
     <thead><tr style="background:#f8fafc;color:#94a3b8;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;font-family:Inter,sans-serif">
-      <th style="text-align:left;padding:12px 18px">ID</th>
+      <th style="text-align:left;padding:12px 18px">Ride No</th>
+      <th style="text-align:left;padding:12px 18px">Ride ID</th>
       <th style="text-align:left;padding:12px 18px">Patient</th>
+      <th style="text-align:left;padding:12px 18px">Email</th>
       <th style="text-align:left;padding:12px 18px">Phone</th>
       <th style="text-align:left;padding:12px 18px">Pickup</th>
       <th style="text-align:left;padding:12px 18px">Type</th>
       <th style="text-align:left;padding:12px 18px">Date</th>
+      <th style="text-align:left;padding:12px 18px">Cancellation Reason</th>
       <th style="text-align:left;padding:12px 18px">Status</th>
     </tr></thead>
     <tbody>${rows.slice(0,50).map(b=>`
-      <tr class="clickable" style="border-top:1px solid #f8fafc" onclick="openBookingModal('${b.id}')">
-        <td style="padding:12px 18px;font-family:monospace;color:#1a40c2;font-size:.72rem">${(b.id||'').slice(0,8)}…</td>
+      <tr class="clickable" style="border-top:1px solid #f1f5f9;background:white" onclick="openBookingModal('${b.id}')">
+        <td style="padding:12px 18px"><span style="display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;background:#eff6ff;color:#1d4ed8;font-size:.69rem;font-weight:800;font-family:Inter,sans-serif">${getBookingDisplayCode(b)}</span></td>
+        <td style="padding:12px 18px;font-family:monospace;color:#1a40c2;font-size:.72rem">${b.id||'—'}</td>
         <td style="padding:12px 18px;font-weight:600">${b.patient_name||'—'}</td>
+        <td style="padding:12px 18px;color:#64748b">${b.email || b.customer_email || b.user_email || '—'}</td>
         <td style="padding:12px 18px;color:#64748b">${b.phone||'—'}</td>
         <td style="padding:12px 18px;color:#64748b;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${(b.pickup_address||'—').slice(0,28)}</td>
         <td style="padding:12px 18px">${b.transport_type||b.service_type||'—'}</td>
-        <td style="padding:12px 18px;color:#94a3b8">${(b.pickup_date||b.created_at||'').slice(0,10)}</td>
-        <td style="padding:12px 18px"><span style="background:${statusBg[b.status]||'#f1f5f9'};color:${statusColor[b.status]||'#64748b'};padding:3px 8px;border-radius:20px;font-size:.7rem;font-weight:700">${b.status||'—'}</span></td>
+        <td style="padding:12px 18px;color:#64748b">${getBookingDateValue(b)||'—'}</td>
+        <td style="padding:12px 18px">${renderCancellationReason(b.cancellation_reason)}</td>
+        <td style="padding:12px 18px">${renderStatusPill(b.status)}</td>
       </tr>`).join('')}</tbody></table>`;
 }
 
@@ -1007,6 +1194,7 @@ function renderFleetTable() {
         <th style="text-align:left;padding:10px 18px">Type</th>
         <th style="text-align:left;padding:10px 18px">Capacity</th>
         <th style="text-align:left;padding:10px 18px">Status</th>
+        <th style="text-align:left;padding:10px 18px">Action</th>
       </tr></thead>
       <tbody>${allVehicles.map(v=>`
         <tr style="border-top:1px solid #f8fafc">
@@ -1015,6 +1203,9 @@ function renderFleetTable() {
           <td style="padding:11px 18px;color:#64748b">${v.type||'—'}</td>
           <td style="padding:11px 18px">${v.capacity||'—'} seats</td>
           <td style="padding:11px 18px"><span style="background:${statusBg[v.status]||'#f1f5f9'};color:${statusCl[v.status]||'#64748b'};padding:3px 8px;border-radius:20px;font-size:.7rem;font-weight:700">${v.status||'—'}</span></td>
+          <td style="padding:11px 18px">
+            <button onclick="openVehicleModal('${v.id}')" style="background:#eff6ff;color:#1d4ed8;border:1px solid #bfdbfe;border-radius:9px;padding:7px 12px;font-size:.74rem;font-weight:700;cursor:pointer">Edit</button>
+          </td>
         </tr>`).join('')}</tbody></table>`;
   }
   // Driver-vehicle section
@@ -1043,11 +1234,18 @@ function renderFleetTable() {
 }
 
 // ============ VEHICLE MANAGEMENT ============
-function openVehicleModal() {
-  ['veh-make','veh-model','veh-plate'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
-  document.getElementById('veh-capacity').value = '4';
-  document.getElementById('veh-type').value = 'Standard';
-  document.getElementById('veh-status').value = 'active';
+function openVehicleModal(vehicleId = null) {
+  const vehicle = vehicleId ? allVehicles.find(v => String(v.id) === String(vehicleId)) : null;
+  editingVehicleId = vehicle?.id || null;
+  document.getElementById('vehicle-modal-title').textContent = vehicle ? 'Edit Vehicle' : 'Add Vehicle';
+  document.getElementById('veh-btn-text').textContent = vehicle ? 'Save Vehicle Changes' : 'Add Vehicle to Fleet';
+  document.getElementById('veh-btn-icon').textContent = vehicle ? 'save' : 'add_circle';
+  document.getElementById('veh-make').value = vehicle?.make || '';
+  document.getElementById('veh-model').value = vehicle?.model || '';
+  document.getElementById('veh-plate').value = vehicle?.plate || '';
+  document.getElementById('veh-capacity').value = vehicle?.capacity || '4';
+  document.getElementById('veh-type').value = vehicle?.type || 'Standard';
+  document.getElementById('veh-status').value = vehicle?.status || 'active';
   document.getElementById('vehicle-err').style.display = 'none';
   document.getElementById('modal-vehicle').style.display = 'flex';
 }
@@ -1065,18 +1263,29 @@ async function saveVehicle() {
   document.getElementById('veh-btn-text').textContent = 'Saving...';
   document.getElementById('veh-btn').disabled = true;
 
-  const newVehicle = { id: lsGenId(), make, model, plate, capacity, type, status, created_at: new Date().toISOString() };
+  const vehiclePayload = { make, model, plate, capacity, type, status };
+  const newVehicle = { id: editingVehicleId || lsGenId(), ...vehiclePayload, created_at: new Date().toISOString() };
   let cloudOk = false;
   try {
-    const { data, error } = await db.from('cars').insert([{ make, model, plate, capacity, type, status }]).select().single();
-    if (!error && data) { newVehicle.id = data.id; cloudOk = true; }
+    if (editingVehicleId) {
+      const { data, error } = await db.from('cars').update(vehiclePayload).eq('id', editingVehicleId).select().single();
+      if (!error && data) { newVehicle.id = data.id; cloudOk = true; }
+    } else {
+      const { data, error } = await db.from('cars').insert([vehiclePayload]).select().single();
+      if (!error && data) { newVehicle.id = data.id; cloudOk = true; }
+    }
   } catch(e) {}
   if (!cloudOk) {
     const vehicles = lsGet('sr_vehicles');
-    vehicles.unshift(newVehicle);
+    const idx = vehicles.findIndex(v => String(v.id) === String(newVehicle.id));
+    if (idx >= 0) vehicles[idx] = { ...vehicles[idx], ...newVehicle };
+    else vehicles.unshift(newVehicle);
     lsSet('sr_vehicles', vehicles);
     allVehicles = vehicles;
   }
+  editingVehicleId = null;
+  document.getElementById('vehicle-modal-title').textContent = 'Add Vehicle';
+  document.getElementById('veh-btn-icon').textContent = 'add_circle';
   document.getElementById('veh-btn-text').textContent = 'Add Vehicle to Fleet';
   document.getElementById('veh-btn').disabled = false;
   closeModal('modal-vehicle');
@@ -1137,106 +1346,257 @@ function initMap() {
   mapInstance.on('load', () => refreshMap());
 }
 
-function makeMarkerEl(bg, label) {
-  const el = document.createElement('div');
-  el.style.cssText = `width:34px;height:34px;background:${bg};border-radius:50%;border:3px solid white;box-shadow:0 3px 10px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:.6rem;font-family:Inter,sans-serif;cursor:pointer`;
-  el.textContent = label;
-  return el;
+function renderDispatchQueue() {
+  const rides = getDispatchQueueRides();
+  const pendingCount = rides.filter(ride => ride.status === 'pending').length;
+  const progressCount = rides.filter(ride => ride.status === 'in_progress').length;
+  const listEl = document.getElementById('dispatch-rides-list');
+  document.getElementById('dispatch-pending-count').textContent = `${rides.length} rides`;
+  document.getElementById('dispatch-pending-kpi').textContent = String(pendingCount);
+  document.getElementById('dispatch-progress-kpi').textContent = String(progressCount);
+
+  if (!rides.length) {
+    listEl.innerHTML = '<p style="padding:18px;border:1px dashed #cbd5e1;border-radius:16px;background:#f8fafc;color:#94a3b8;font-size:.82rem;text-align:center">No rides waiting for dispatch.</p>';
+    document.getElementById('dispatch-selection-pill').textContent = 'No ride selected';
+    return;
+  }
+
+  if (!selectedDispatchRideId || !rides.find(ride => ride.id === selectedDispatchRideId)) {
+    selectedDispatchRideId = rides[0].id;
+  }
+
+  listEl.innerHTML = rides.map((ride) => {
+    const isSelected = ride.id === selectedDispatchRideId;
+    return `<button onclick="selectDispatchRide('${ride.id}')" style="text-align:left;border:${isSelected ? '2px solid #1d4ed8' : '1px solid #e2e8f0'};background:${isSelected ? 'linear-gradient(180deg,#eff6ff 0%,#ffffff 100%)' : '#ffffff'};border-radius:18px;padding:14px 14px 12px;cursor:pointer;display:grid;gap:8px;box-shadow:${isSelected ? '0 16px 36px rgba(29,78,216,.12)' : 'none'};transition:all .18s ease">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <span style="font-family:Inter,sans-serif;font-size:.72rem;font-weight:800;color:${isSelected ? '#1d4ed8' : '#475569'}">${getBookingDisplayCode(ride)}</span>
+        ${getRideBadge(ride.status)}
+      </div>
+      <div>
+        <p style="font-size:.9rem;font-weight:700;color:#0f172a">${escAttr(ride.patient_name || 'Passenger')}</p>
+        <p style="font-size:.76rem;color:#64748b;margin-top:3px">${escAttr((ride.pickup_address || 'Pickup pending').slice(0, 72))}</p>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;font-size:.72rem;color:#94a3b8">
+        <span>${escAttr(ride.transport_type || ride.service_type || 'Standard')}</span>
+        <span>${escAttr((ride.created_at || '').replace('T', ' ').slice(0, 16) || 'Now')}</span>
+      </div>
+    </button>`;
+  }).join('');
+  const selected = rides.find(ride => ride.id === selectedDispatchRideId);
+  document.getElementById('dispatch-selection-pill').textContent = selected ? `${getBookingDisplayCode(selected)} selected` : 'No ride selected';
+}
+
+function buildDriverPopupHtml(driver, ride, distanceKm) {
+  const theme = getDriverDispatchTheme(driver);
+  const canAssign = Boolean(ride) && theme.state === 'online' && vehicleTypesMatch(ride, driver);
+  return `
+    <div style="min-width:220px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px">
+        <strong style="font-size:.92rem;color:#0f172a">${escAttr(driverDisplayName(driver))}</strong>
+        <span style="display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;background:${theme.glow};color:${theme.color};font-size:.68rem;font-weight:800">${theme.label}</span>
+      </div>
+      <div style="display:grid;gap:4px;font-size:.76rem;color:#475569">
+        <div><span style="color:#94a3b8">Phone:</span> ${escAttr(driver.phone || '—')}</div>
+        <div><span style="color:#94a3b8">Vehicle:</span> ${escAttr(driver.vehicle_type || '—')}</div>
+        <div><span style="color:#94a3b8">Distance:</span> ${Number.isFinite(distanceKm) ? `${distanceKm.toFixed(1)} km` : '—'}</div>
+      </div>
+      <button onclick="assignDriverFromMap('${driver.id}')" ${canAssign ? '' : 'disabled'} style="margin-top:12px;width:100%;background:${canAssign ? '#1d4ed8' : '#e2e8f0'};color:${canAssign ? 'white' : '#94a3b8'};border:none;border-radius:10px;padding:9px 12px;font-weight:800;font-size:.76rem;cursor:${canAssign ? 'pointer' : 'not-allowed'}">
+        ${canAssign ? 'Assign To Selected Ride' : ride ? 'Vehicle / status mismatch' : 'Select a ride first'}
+      </button>
+    </div>
+  `;
+}
+
+function getSelectedDispatchRide() {
+  return allBookings.find(ride => ride.id === selectedDispatchRideId) || null;
+}
+
+function updateDispatchSelectionPanel(ride, nearbyDrivers = []) {
+  const nearbyPill = document.getElementById('dispatch-nearby-pill');
+  if (!ride) { nearbyPill.textContent = '0 nearby drivers'; return; }
+  nearbyPill.textContent = `${nearbyDrivers.length} nearby drivers`;
+}
+
+async function renderDispatchSidebarAndSelection() {
+  renderDispatchQueue();
+  const selectedRide = getSelectedDispatchRide();
+  if (!selectedRide) {
+    updateDispatchSelectionPanel(null, []);
+    return;
+  }
+  const coords = await geocodeAddressMapbox(selectedRide.pickup_address || '');
+  selectedRideCoords = coords;
+  const nearbyDrivers = allDrivers.filter((driver) => {
+    const driverCoords = parseCoords(driver.coords);
+    return driverCoords && getDriverDispatchState(driver) === 'online' && haversineDistanceKm(coords, driverCoords) <= DISPATCH_HIGHLIGHT_RADIUS_KM;
+  });
+  updateDispatchSelectionPanel(selectedRide, coords ? nearbyDrivers : []);
+}
+
+async function selectDispatchRide(rideId) {
+  selectedDispatchRideId = rideId;
+  await renderDispatchSidebarAndSelection();
+  if (!mapInstance) return;
+  const ride = getSelectedDispatchRide();
+  const coords = selectedRideCoords || (ride ? await geocodeAddressMapbox(ride.pickup_address || '') : null);
+  if (coords) {
+    mapInstance.flyTo({ center: coords, zoom: 13.9, speed: 0.85, curve: 1.2, essential: true });
+  }
+  refreshMap();
+}
+
+async function assignDriverFromMap(driverId) {
+  const ride = getSelectedDispatchRide();
+  if (!ride) { alert('Select a ride first.'); return; }
+  const driver = allDrivers.find(item => String(item.id) === String(driverId));
+  if (!driver) { alert('Driver not found.'); return; }
+
+  let cloudOk = false;
+  try {
+    const { error } = await db.from('bookings').update({
+      driver_id: driver.id,
+      driver_name: driverDisplayName(driver),
+      driver_vehicle: [driver.vehicle_type, driver.vehicle_number].filter(Boolean).join(' · '),
+      status: ride.status === 'pending' ? 'confirmed' : ride.status
+    }).eq('id', ride.id);
+    if (!error) cloudOk = true;
+  } catch (error) {}
+
+  if (!cloudOk) {
+    const bookings = lsGet('sr_bookings');
+    const idx = bookings.findIndex(item => item.id === ride.id);
+    if (idx >= 0) {
+      bookings[idx].driver_id = driver.id;
+      bookings[idx].driver_name = driverDisplayName(driver);
+      bookings[idx].driver_vehicle = [driver.vehicle_type, driver.vehicle_number].filter(Boolean).join(' · ');
+      if (bookings[idx].status === 'pending') bookings[idx].status = 'confirmed';
+      lsSet('sr_bookings', bookings);
+    }
+  }
+
+  await loadBookings();
+  renderOverview();
+  await renderDispatchSidebarAndSelection();
+  refreshMap();
 }
 
 async function refreshMap() {
   if (!mapInstance) return;
-  // Remove old markers
-  mapMarkers.forEach(m => m.remove());
+  mapMarkers.forEach(marker => marker.remove());
   mapMarkers = [];
+  mapDriverMarkers = [];
   const legend = document.getElementById('map-legend');
   legend.innerHTML = '';
 
-  // HQ pin
-  const hqEl = document.createElement('div');
-  hqEl.style.cssText = 'width:40px;height:40px;background:#0f172a;border-radius:10px;border:3px solid white;box-shadow:0 4px 12px rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;color:white;font-size:.65rem;font-weight:700;cursor:pointer';
-  hqEl.textContent = 'HQ';
-  const hqM = new mapboxgl.Marker({element: hqEl}).setLngLat(SEATTLE)
-    .setPopup(new mapboxgl.Popup({offset:20}).setHTML('<b>Swift Ride LLP HQ</b><br><small style="color:#64748b">Seattle, WA</small>'))
-    .addTo(mapInstance);
-  mapMarkers.push(hqM);
+  const queueRides = getDispatchQueueRides();
+  if (queueRides.length && (!selectedDispatchRideId || !queueRides.find(ride => ride.id === selectedDispatchRideId))) {
+    selectedDispatchRideId = queueRides[0].id;
+  }
 
-  // Driver markers — show only active drivers with live coords
-  const activeDrivers = allDrivers.filter(d => driverIsAvailable(d) && parseCoords(d.coords));
-  activeDrivers.forEach((d) => {
-    const [lng, lat] = parseCoords(d.coords);
-    const initials = driverDisplayName(d).split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  await renderDispatchSidebarAndSelection();
+  const selectedRide = getSelectedDispatchRide();
+  const rideCoords = selectedRideCoords || (selectedRide ? await geocodeAddressMapbox(selectedRide.pickup_address || '') : null);
 
-    const el = document.createElement('div');
-    el.style.cssText = 'position:relative;cursor:pointer';
-    el.innerHTML = `
-      <div style="position:absolute;inset:-6px;border-radius:50%;background:rgba(26,64,194,.25);animation:pulse 2s infinite"></div>
-      <div style="width:36px;height:36px;background:#1a40c2;border-radius:50%;border:3px solid white;box-shadow:0 3px 12px rgba(26,64,194,.5);display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:.65rem;font-family:Inter,sans-serif;position:relative;z-index:1">${initials}</div>`;
-    const bg = '#1a40c2';
-    const popup = new mapboxgl.Popup({offset:20}).setHTML(
-      `<b>${driverDisplayName(d)}</b><br><small style="color:#64748b">${d.vehicle_type||''} · #${d.vehicle_number||'—'}</small><br><small style="color:#16a34a;font-weight:700">● Active</small>`
-    );
-    const m = new mapboxgl.Marker({element:el}).setLngLat([lng,lat]).setPopup(popup).addTo(mapInstance);
-    mapMarkers.push(m);
+  if (rideCoords) {
+    const pickupEl = document.createElement('div');
+    pickupEl.style.cssText = 'width:26px;height:26px;border-radius:8px;background:#f59e0b;border:3px solid white;box-shadow:0 8px 20px rgba(245,158,11,.35);display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:900';
+    pickupEl.textContent = 'P';
+    const pickupMarker = new mapboxgl.Marker({ element: pickupEl }).setLngLat(rideCoords)
+      .setPopup(new mapboxgl.Popup({ offset: 18 }).setHTML(`<b>${escAttr(selectedRide.patient_name || 'Passenger')}</b><br><small style="color:#64748b">${escAttr(selectedRide.pickup_address || 'Pickup')}</small>`))
+      .addTo(mapInstance);
+    mapMarkers.push(pickupMarker);
+  }
 
-    const li = document.createElement('div');
-    li.style.cssText = 'display:flex;align-items:center;gap:8px;padding:8px;border-radius:8px;cursor:pointer;margin-bottom:4px;font-size:.78rem';
-    li.onmouseover=()=>li.style.background='#f8fafc'; li.onmouseout=()=>li.style.background='transparent';
-    li.onclick=()=>{ mapInstance.flyTo({center:[lng,lat],zoom:15,duration:800}); m.togglePopup(); };
-    li.innerHTML = `<div style="width:28px;height:28px;border-radius:50%;background:${bg};display:flex;align-items:center;justify-content:center;color:white;font-size:.6rem;font-weight:700;flex-shrink:0">${initials}</div><div><p style="font-weight:600">${driverDisplayName(d)}</p><p style="color:#94a3b8;font-size:.7rem">● Active</p></div>`;
-    legend.appendChild(li);
-  });
-
-  // Active booking pins
-  const activeBookings = allBookings.filter(b => b.status==='in_progress'||b.status==='confirmed');
-  const bookingResults = await Promise.all(activeBookings.map(async (b) => ({
-    booking: b,
-    coords: await geocodeAddressMapbox(b.pickup_address || '')
-  })));
-  bookingResults.forEach(({ booking: b, coords }) => {
+  const nearbyDrivers = [];
+  allDrivers.forEach((driver) => {
+    const coords = parseCoords(driver.coords);
     if (!coords) return;
-    const [lng, lat] = coords;
-    const el = document.createElement('div');
-    el.style.cssText = 'width:28px;height:28px;background:#f59e0b;border-radius:6px;border:2px solid white;box-shadow:0 3px 8px rgba(0,0,0,.3);display:flex;align-items:center;justify-content:center;color:white;font-size:.7rem;cursor:pointer';
-    el.textContent = '📍';
-    const popup = new mapboxgl.Popup({offset:16}).setHTML(
-      `<b>${b.patient_name||'Booking'}</b><br><small style="color:#64748b">${(b.pickup_address||'').slice(0,40)}</small><br><small style="color:#f59e0b;font-weight:700">${b.status}</small>`
-    );
-    const m = new mapboxgl.Marker({element:el}).setLngLat([lng,lat]).setPopup(popup).addTo(mapInstance);
-    mapMarkers.push(m);
+    const theme = getDriverDispatchTheme(driver);
+    const initials = driverDisplayName(driver).split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() || 'DR';
+    const distanceKm = rideCoords ? haversineDistanceKm(rideCoords, coords) : Infinity;
+    const isNearby = rideCoords && theme.state === 'online' && distanceKm <= DISPATCH_HIGHLIGHT_RADIUS_KM;
+    if (isNearby) nearbyDrivers.push(driver);
+
+    const markerEl = document.createElement('div');
+    markerEl.style.cssText = `position:relative;cursor:pointer;transition:transform .18s ease, opacity .18s ease;opacity:${rideCoords && !isNearby && theme.state === 'online' ? '.58' : '1'}`;
+    markerEl.innerHTML = `
+      <div style="position:absolute;inset:-8px;border-radius:50%;background:${isNearby ? 'rgba(37,99,235,.18)' : 'transparent'};border:${isNearby ? '2px solid rgba(37,99,235,.35)' : 'none'}"></div>
+      <div style="width:${isNearby ? '40px' : '34px'};height:${isNearby ? '40px' : '34px'};background:${theme.color};border-radius:${theme.state === 'busy' ? '12px' : '50%'};border:3px solid white;box-shadow:0 10px 24px ${theme.glow};display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:.62rem;font-family:Inter,sans-serif;position:relative;z-index:1">${initials}</div>
+    `;
+    const popup = new mapboxgl.Popup({ offset: 22, closeButton: false, closeOnClick: false }).setHTML(buildDriverPopupHtml(driver, selectedRide, distanceKm));
+    const marker = new mapboxgl.Marker({ element: markerEl }).setLngLat(coords).setPopup(popup).addTo(mapInstance);
+    let popupCloseTimer = null;
+    const queuePopupClose = () => {
+      clearTimeout(popupCloseTimer);
+      popupCloseTimer = setTimeout(() => {
+        if (popup.isOpen()) popup.remove();
+      }, 180);
+    };
+    markerEl.addEventListener('mouseenter', () => {
+      clearTimeout(popupCloseTimer);
+      if (!popup.isOpen()) popup.addTo(mapInstance);
+      markerEl.style.transform = 'translateY(-2px) scale(1.04)';
+    });
+    markerEl.addEventListener('mouseleave', () => {
+      markerEl.style.transform = 'translateY(0) scale(1)';
+      queuePopupClose();
+    });
+    popup.on('open', () => {
+      const popupEl = popup.getElement();
+      popupEl.addEventListener('mouseenter', () => clearTimeout(popupCloseTimer));
+      popupEl.addEventListener('mouseleave', queuePopupClose);
+    });
+    mapDriverMarkers.push({ id: driver.id, marker, state: theme.state, coords, distanceKm, isNearby });
+    mapMarkers.push(marker);
   });
 
-  // Auto-start live tracking if any in_progress ride
-  const inProgress = allBookings.find(b => b.status==='in_progress');
-  if (inProgress) startLiveTracking();
-}
-
-// Live tracking simulation — smoothly flies car marker along a route
-function startLiveTracking() {
-  if (trackInterval) return;
-  // Simulate a route: 8 waypoints around Seattle
-  const route = [
-    [-122.3321,47.6062],[-122.3280,47.6100],[-122.3200,47.6140],
-    [-122.3100,47.6180],[-122.3020,47.6152],[-122.2950,47.6120],
-    [-122.2906,47.6097],[-122.2870,47.6060]
+  const summaryItems = [
+    { title: 'Online Drivers', value: allDrivers.filter(driver => getDriverDispatchState(driver) === 'online').length, tone: '#2563eb' },
+    { title: 'Busy Drivers', value: allDrivers.filter(driver => getDriverDispatchState(driver) === 'busy').length, tone: '#ef4444' },
+    { title: 'Nearby Match', value: nearbyDrivers.length, tone: '#1d4ed8' }
   ];
-  // Create car marker
-  const carEl = document.createElement('div');
-  carEl.style.cssText = 'width:36px;height:36px;background:#8b5cf6;border-radius:50%;border:3px solid white;box-shadow:0 4px 14px rgba(139,92,246,.6);display:flex;align-items:center;justify-content:center;font-size:16px';
-  carEl.textContent = '🚗';
-  if (trackingMarker) trackingMarker.remove();
-  trackingMarker = new mapboxgl.Marker({element:carEl}).setLngLat(route[0]).addTo(mapInstance);
-  mapMarkers.push(trackingMarker);
-  trackStep = 0;
-  mapInstance.flyTo({center: route[0], zoom: 14, duration: 1000});
+  legend.innerHTML = summaryItems.map(item => `
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px;padding:12px">
+      <p style="font-size:.68rem;font-family:Inter,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8">${item.title}</p>
+      <p style="font-family:Syne,sans-serif;font-weight:800;font-size:1.2rem;color:${item.tone};margin-top:4px">${item.value}</p>
+    </div>
+  `).join('');
 
-  trackInterval = setInterval(() => {
-    trackStep++;
-    if (trackStep >= route.length) { clearInterval(trackInterval); trackInterval = null; return; }
-    const pos = route[trackStep];
-    trackingMarker.setLngLat(pos);
-    mapInstance.flyTo({center: pos, zoom: 14, speed: 0.8, curve: 1});
-  }, 2500);
+  if (rideCoords) {
+    if (mapInstance.getSource('dispatch-radius')) {
+      mapInstance.getSource('dispatch-radius').setData({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: rideCoords },
+        properties: {}
+      });
+    } else {
+      mapInstance.addSource('dispatch-radius', {
+        type: 'geojson',
+        data: {
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: rideCoords },
+          properties: {}
+        }
+      });
+      mapInstance.addLayer({
+        id: 'dispatch-radius-fill',
+        type: 'circle',
+        source: 'dispatch-radius',
+        paint: {
+          'circle-radius': 90,
+          'circle-color': '#2563eb',
+          'circle-opacity': 0.08,
+          'circle-stroke-color': '#2563eb',
+          'circle-stroke-opacity': 0.22,
+          'circle-stroke-width': 2
+        }
+      });
+    }
+    mapInstance.flyTo({ center: rideCoords, zoom: 13.9, speed: 0.85, curve: 1.2, essential: true });
+  } else if (mapInstance.getSource('dispatch-radius')) {
+    mapInstance.removeLayer('dispatch-radius-fill');
+    mapInstance.removeSource('dispatch-radius');
+  }
 }
 
 // ============ MODALS ============
@@ -1245,11 +1605,15 @@ function openBookingModal(id) {
   if (!b) return;
   const statusColor = {pending:'#f59e0b',confirmed:'#1a40c2',in_progress:'#8b5cf6',completed:'#22c55e',cancelled:'#ef4444'};
   const rows = [
+    ['Ride Number', getBookingDisplayCode(b)],
+    ['Ride ID', b.id],
     ['Patient Name', b.patient_name],['Phone', b.phone],
+    ['Email', b.email || b.customer_email || b.user_email || '—'],
     ['Pickup', b.pickup_address],['Destination', b.destination_address],
     ['Date / Time', `${b.pickup_date||'—'} ${b.pickup_time||''}`],
     ['Transport Type', b.transport_type||b.service_type],
     ['Status', `<span style="color:${statusColor[b.status]||'#64748b'};font-weight:700;text-transform:capitalize">${b.status||'—'}</span>`],
+    ['Cancellation Reason', b.cancellation_reason ? renderCancellationReason(b.cancellation_reason) : '—'],
     ['Assigned Driver', b.driver_name||'Unassigned'],
     ['Driver Vehicle', b.driver_vehicle||'—'],
     ['Payment ID', b.payment_intent_id ? `<span style="font-family:monospace;font-size:.75rem">${b.payment_intent_id.slice(0,24)}…</span>` : '—'],
@@ -1308,6 +1672,7 @@ async function updateBookingStatus(bookingId, newStatus) {
   closeModal('modal-booking');
   await loadAllData();
   renderOverview();
+  if (mapInitialized) refreshMap();
 }
 
 async function assignDriverToBooking(bookingId) {
@@ -1596,27 +1961,163 @@ function escAttr(value) {
     .replace(/>/g, '&gt;');
 }
 
+function getBookingDateValue(booking) {
+  return (booking.pickup_date || booking.created_at || '').slice(0, 10);
+}
+
+function getBookingDisplayCode(booking) {
+  if (!booking?.id) return '—';
+  return `SR-${String(booking.id).slice(0, 8).toUpperCase()}`;
+}
+
+function getBookingSearchText(booking) {
+  return [
+    booking?.id,
+    getBookingDisplayCode(booking),
+    booking?.patient_name,
+    booking?.email,
+    booking?.customer_email,
+    booking?.user_email
+  ].filter(Boolean).join(' ').toLowerCase();
+}
+
+function formatStatusLabel(status) {
+  return String(status || 'unknown').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function renderStatusPill(status) {
+  const statusColor = {pending:'#b45309',confirmed:'#1d4ed8',in_progress:'#7c3aed',completed:'#15803d',cancelled:'#b91c1c'};
+  const statusBg = {pending:'#fef3c7',confirmed:'#dbeafe',in_progress:'#ede9fe',completed:'#dcfce7',cancelled:'#fee2e2'};
+  return `<span style="display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;background:${statusBg[status]||'#e2e8f0'};color:${statusColor[status]||'#475569'};font-size:.68rem;font-weight:700;letter-spacing:.02em">${formatStatusLabel(status)}</span>`;
+}
+
+function renderCancellationReason(reason) {
+  const value = String(reason || '').trim();
+  if (!value) return '<span style="display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;background:#f8fafc;color:#94a3b8;font-size:.68rem;font-weight:700">None</span>';
+  return `<span style="display:inline-flex;align-items:center;max-width:240px;padding:5px 10px;border-radius:999px;background:#fff1f2;color:#be123c;border:1px solid #fecdd3;font-size:.68rem;font-weight:700;line-height:1.35">${escAttr(value)}</span>`;
+}
+
+function normalizeCategoryKey(value) {
+  return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+function getVehicleCategoryLabel(category) {
+  return category?.label || category?.category || category?.name || category?.title || category?.service_type || category?.vehicle_type || 'Category';
+}
+
+function getVehicleCategoryKey(category) {
+  const raw = category?.key || category?.category || category?.name || category?.title || category?.service_type || category?.vehicle_type || category?.label;
+  const normalized = normalizeCategoryKey(raw);
+  if (normalized === 'xlvan' || normalized === 'van') return 'xl';
+  return normalized;
+}
+
+function mergeVehicleCategories(rows = []) {
+  const mapped = new Map(DEFAULT_VEHICLE_CATEGORIES.map(item => [item.key, { ...item }]));
+  rows.forEach((row) => {
+    const key = getVehicleCategoryKey(row);
+    if (!key) return;
+    const current = mapped.get(key) || { label: getVehicleCategoryLabel(row), key, description: '' };
+    mapped.set(key, {
+      ...current,
+      ...row,
+      label: getVehicleCategoryLabel({ ...current, ...row }),
+      key
+    });
+  });
+  return Array.from(mapped.values());
+}
+
+function renderVehicleCategorySettings() {
+  const wrap = document.getElementById('vehicle-category-settings');
+  if (!wrap) return;
+  const categories = allVehicleCategories.length ? allVehicleCategories : DEFAULT_VEHICLE_CATEGORIES;
+  wrap.innerHTML = categories.map((category) => `
+    <div style="border:1px solid #e2e8f0;border-radius:14px;padding:16px;background:#f8fafc">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px">
+        <div>
+          <p style="font-size:.92rem;font-weight:700;color:#0f172a">${escAttr(category.label)}</p>
+          <p style="font-size:.74rem;color:#64748b;margin-top:2px">${escAttr(category.description || 'Dynamic fare settings for this ride option.')}</p>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+        <div>
+          <label style="display:block;font-size:.68rem;font-family:Inter,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:6px">Start Rate ($)</label>
+          <input data-category-key="${escAttr(category.key)}" data-field="start_rate" type="number" step="0.01" min="0" value="${escAttr(category.start_rate)}" placeholder="4.50" style="width:100%;background:white;border:2px solid transparent;border-radius:10px;padding:10px 14px;font-size:.84rem;outline:none" onfocus="this.style.borderColor='#1a40c2'" onblur="this.style.borderColor='transparent'"/>
+        </div>
+        <div>
+          <label style="display:block;font-size:.68rem;font-family:Inter,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:6px">Distance Rate ($/km)</label>
+          <input data-category-key="${escAttr(category.key)}" data-field="distance_rate" type="number" step="0.01" min="0" value="${escAttr(category.distance_rate)}" placeholder="1.85" style="width:100%;background:white;border:2px solid transparent;border-radius:10px;padding:10px 14px;font-size:.84rem;outline:none" onfocus="this.style.borderColor='#1a40c2'" onblur="this.style.borderColor='transparent'"/>
+        </div>
+        <div>
+          <label style="display:block;font-size:.68rem;font-family:Inter,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:#94a3b8;margin-bottom:6px">Minute Rate ($/min)</label>
+          <input data-category-key="${escAttr(category.key)}" data-field="minute_rate" type="number" step="0.01" min="0" value="${escAttr(category.minute_rate)}" placeholder="0.35" style="width:100%;background:white;border:2px solid transparent;border-radius:10px;padding:10px 14px;font-size:.84rem;outline:none" onfocus="this.style.borderColor='#1a40c2'" onblur="this.style.borderColor='transparent'"/>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
 // ============ SETTINGS ============
 async function saveSettings() {
   const baseFare = document.getElementById('set-base-fare').value;
   const priceKm = document.getElementById('set-price-km').value;
   const autoDispatch = document.getElementById('set-auto-dispatch').checked ? 'true' : 'false';
+  const dispatchRadius = document.getElementById('set-dispatch-radius').value;
+  const dispatchTimeout = document.getElementById('set-dispatch-timeout').value;
+  const dispatchVehicleMatch = document.getElementById('set-dispatch-vmatch').value;
   const appMode = document.getElementById('set-app-mode').value;
   const msg = document.getElementById('settings-msg');
-  const updated = { base_fare: baseFare, price_per_km: priceKm, auto_dispatch: autoDispatch, app_mode: appMode };
+  const updated = {
+    base_fare: baseFare,
+    price_per_km: priceKm,
+    auto_dispatch: autoDispatch,
+    dispatch_search_radius_km: dispatchRadius,
+    dispatch_response_timeout_min: dispatchTimeout,
+    dispatch_vehicle_match: dispatchVehicleMatch,
+    app_mode: appMode
+  };
+  const categoryInputs = Array.from(document.querySelectorAll('#vehicle-category-settings input[data-category-key][data-field]'));
+  const categoryDrafts = mergeVehicleCategories(allVehicleCategories).map(category => ({ ...category }));
+  categoryInputs.forEach((input) => {
+    const category = categoryDrafts.find(item => item.key === input.dataset.categoryKey);
+    if (category) category[input.dataset.field] = input.value;
+  });
   // Always save locally first
   localStorage.setItem('sr_settings', JSON.stringify(updated));
+  localStorage.setItem('sr_vehicle_categories', JSON.stringify(categoryDrafts));
   allSettings = updated;
+  allVehicleCategories = categoryDrafts;
   let savedCloud = false;
   try {
     const entries = [
       { key: 'base_fare', value: baseFare },
       { key: 'price_per_km', value: priceKm },
       { key: 'auto_dispatch', value: autoDispatch },
+      { key: 'dispatch_search_radius_km', value: dispatchRadius },
+      { key: 'dispatch_response_timeout_min', value: dispatchTimeout },
+      { key: 'dispatch_vehicle_match', value: dispatchVehicleMatch },
       { key: 'app_mode', value: appMode }
     ];
     for (const e of entries) {
       await db.from('settings').upsert({ key: e.key, value: e.value }, { onConflict: 'key' });
+    }
+    for (const category of categoryDrafts) {
+      const payload = {
+        start_rate: category.start_rate || 0,
+        distance_rate: category.distance_rate || 0,
+        minute_rate: category.minute_rate || 0
+      };
+      if (category.id) {
+        await db.from('vehicle_categories').update(payload).eq('id', category.id);
+      } else {
+        await db.from('vehicle_categories').insert({
+          name: category.label,
+          start_rate: payload.start_rate,
+          distance_rate: payload.distance_rate,
+          minute_rate: payload.minute_rate
+        });
+      }
     }
     savedCloud = true;
   } catch(e) {}
@@ -1750,7 +2251,7 @@ function setView(id) {
   document.querySelectorAll('.sl').forEach(l=>l.classList.remove('on'));
   const sl = document.getElementById('sl-'+id);
   if(sl) sl.classList.add('on');
-  if (id === 'map') setTimeout(initMap, 100);
+  if (id === 'map') setTimeout(() => { initMap(); if (mapInstance) mapInstance.resize(); }, 100);
   if (id === 'coupons') renderCouponsTable();
   if (id === 'settings') loadSettings();
 }
